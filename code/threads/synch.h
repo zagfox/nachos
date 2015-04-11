@@ -83,6 +83,8 @@ public:
 
 private:
     char* name;				// for debugging
+    Thread *owner;                     //owner, free NULL, busy id
+    List *queue;
     // plus some other stuff you'll need to define
 };
 

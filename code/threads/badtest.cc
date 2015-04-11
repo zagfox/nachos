@@ -8,6 +8,7 @@
 #include "synch.h"
 
 int sharedValue;
+Lock *l;
 
 //----------------------------------------------------------------------
 // BadSimpleThread
@@ -24,6 +25,7 @@ BadSimpleThread(int which)
 
     for (num = 0; num < 5; num++) {
       // No Acquire!
+      l->Acquire();
 
       tmp = sharedValue;
       currentThread->Yield();
@@ -33,6 +35,7 @@ BadSimpleThread(int which)
       printf("Thread %d, sharedValue %d\n", which, sharedValue);
 
       // No Release!
+      l->Release();
       currentThread->Yield();
     }
 }
@@ -51,10 +54,13 @@ ThreadTestBad()
     DEBUG('t', "Entering BadSimpleTest");
 
     sharedValue = 0;
+    l = new Lock("l1");
 
     for (i = 0; i < 2; i++) {
       Thread *t = new Thread("forked thread");
       t->Fork(BadSimpleThread, i);
     }
+
+    delete l;
 }
 
