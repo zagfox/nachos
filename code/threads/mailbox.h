@@ -9,9 +9,8 @@ public:
 	void Receive(int* message);
 private:
 	char *name;
-	int  cntSend; //count of send 
-	int  cntRecv;
-	int  *buffer;
-	Condition *cvSend, *cvRecv;
+	int  cnt;  //count of send 
+	List *buffer;
+	Condition *cv;
 	Lock *lock;
 };

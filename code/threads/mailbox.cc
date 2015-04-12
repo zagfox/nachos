@@ -2,30 +2,26 @@
 
 Mailbox::Mailbox(char *debugName) {
 	name = debugName;
-	buffer = new int;
-	cvSend = new Condition("cvSend");
-	cvRecv = new Condition("cvRecv");
+	buffer = new List;
+	cv = new Condition("cv");
 	lock = new Lock("lock");
 }
 
 Mailbox::~Mailbox() {
 	delete buffer;
-	delete cvSend;
-	delete cvRecv;
+	delete cv;
 	delete lock;
 }
 
 void Mailbox::Send(int message) {
 	lock->Acquire();
 
-	cntSend++;
-	*buffer = message;
-
-	if (cntRecv == 0) {
-		cvSend->Wait(lock);
+	cnt++;
+	buffer->Append((void*)message);
+	if (cnt > 0) {
+		cv->Wait(lock);
 	} else {
-		cvRecv->Signal(lock);
-		cntRecv = 0;
+		cv->Signal(lock);
 	}
 
 	lock->Release();
@@ -33,18 +29,16 @@ void Mailbox::Send(int message) {
 
 void Mailbox::Receive(int* message) {
 	lock->Acquire();
-	cntRecv++;
 
-	if (cntSend == 0) {
-		cvRecv->Wait(lock);
+	cnt--;
+	if (cnt < 0) {
+		cv->Wait(lock);
 	} else {
-		//broadcast
-		cvSend->Signal(lock);
-		cntSend = 0;
+		cv->Signal(lock);
 	}
 
-	//get info
-	*message = *buffer;
+	ASSERT(!buffer->IsEmpty());
+	*message = (int)buffer->Remove();
 
 	lock->Release();
 }

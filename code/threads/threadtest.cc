@@ -123,11 +123,17 @@ ThreadTest()
     case 13:
         CondTestBroadcast();
         break;
-    case 20:
+    case 21:
         MailboxTest1();
         break;
-    case 21:
+    case 22:
         MailboxTest2();
+        break;
+    case 23:
+        MailboxTest3();
+        break;
+    case 24:
+        MailboxTest4();
         break;
     default:
         printf("No test specified.\n");
