@@ -139,6 +139,7 @@ public:
 
 private:
     char* name;
-    // plus some other stuff you'll need to define
+	//int state;  // 1 free, 0 waiting
+	List *queue;
 };
 #endif // SYNCH_H

@@ -101,13 +101,14 @@ Semaphore::V()
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
 Lock::Lock(char* debugName) {
-    name = debugName;
-    owner = NULL;
-    queue = new List;
+    this->name = debugName;
+    this->owner = NULL;
+    this->queue = new List;
 }
 
 Lock::~Lock() {
     ASSERT(owner == NULL);   //1.3 can't delete a lock that is hold
+	ASSERT(queue->IsEmpty()); //1.8
     delete queue;
 }
 
@@ -117,10 +118,10 @@ void Lock::Acquire() {
     ASSERT(owner != currentThread); //1.1 acquire same lock twice
 
     while (owner != NULL) {
-    	queue->Append((void*)currentThread);
-	currentThread->Sleep();
+    	this->queue->Append((void*)currentThread);
+		currentThread->Sleep();
     }
-    owner = currentThread;
+    this->owner = currentThread;
     
     interrupt->SetLevel(oldLevel);
 }
@@ -131,7 +132,7 @@ void Lock::Release() {
 
     ASSERT(owner == currentThread);  //1.2 release must hold by self
 
-    thread = (Thread*) queue->Remove();
+    thread = (Thread*) this->queue->Remove();
     if (thread != NULL) {
     	scheduler->ReadyToRun(thread);
     }
@@ -139,10 +140,50 @@ void Lock::Release() {
     interrupt->SetLevel(oldLevel);
 }
 
-Condition::Condition(char* debugName) { }
-Condition::~Condition() { }
-void Condition::Wait(Lock* conditionLock) {
-    ASSERT(FALSE);
+Condition::Condition(char* debugName) { 
+	this->name = debugName;
+	this->queue = new List;
 }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
+
+Condition::~Condition() { 
+	ASSERT(queue->IsEmpty()); //1.8
+	delete queue;
+}
+
+//Make it simple, just one lock used in condvar
+void Condition::Wait(Lock* conditionLock) {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
+	this->queue->Append((void*)currentThread);
+	conditionLock->Release();
+	currentThread->Sleep();
+	conditionLock->Acquire();
+
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+}
+
+void Condition::Signal(Lock* conditionLock) { 
+	Thread *thread;
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
+	thread = (Thread*) queue->Remove();
+	if (thread != NULL) {
+		scheduler->ReadyToRun(thread);
+	}
+
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+}
+
+void Condition::Broadcast(Lock* conditionLock) { 
+	Thread *thread;
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
+	while (!queue->IsEmpty()) {
+		thread = (Thread*) queue->Remove();
+		if (thread != NULL) {
+			scheduler->ReadyToRun(thread);
+		}
+	}
+
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+}
