@@ -14,6 +14,7 @@
 
 #include "badtest.h"
 #include "test_cond.h"
+#include "test_mailbox.h"
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -121,6 +122,12 @@ ThreadTest()
         break;
     case 13:
         CondTestBroadcast();
+        break;
+    case 20:
+        MailboxTest1();
+        break;
+    case 21:
+        MailboxTest2();
         break;
     default:
         printf("No test specified.\n");

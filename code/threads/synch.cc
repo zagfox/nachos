@@ -140,6 +140,10 @@ void Lock::Release() {
     interrupt->SetLevel(oldLevel);
 }
 
+bool Lock::isHeldByCurrentThread() {
+	return (owner == currentThread);
+}
+
 Condition::Condition(char* debugName) { 
 	this->name = debugName;
 	this->queue = new List;
@@ -166,6 +170,8 @@ void Condition::Signal(Lock* conditionLock) {
 	Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 
+	ASSERT(conditionLock->isHeldByCurrentThread()); //1.7 owner of lock call signal
+
 	thread = (Thread*) queue->Remove();
 	if (thread != NULL) {
 		scheduler->ReadyToRun(thread);
@@ -177,6 +183,8 @@ void Condition::Signal(Lock* conditionLock) {
 void Condition::Broadcast(Lock* conditionLock) { 
 	Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
+	ASSERT(conditionLock->isHeldByCurrentThread()); //1.7 owner of lock call signal
 
 	while (!queue->IsEmpty()) {
 		thread = (Thread*) queue->Remove();
