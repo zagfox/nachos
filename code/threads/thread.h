@@ -99,6 +99,9 @@ public:
     void Finish();  				// The thread is done executing
 	void Join();
 
+	void setPriority(int newPriority);
+	int  getPriority();
+
     void CheckOverflow();   			// Check if thread has
     // overflowed its stack
     void setStatus(ThreadStatus st) {
@@ -113,6 +116,7 @@ public:
 
 private:
     // some of the private data for this class is listed above
+
 	//join related
 	// join can only start when join_ok is 0
 	// real finish(delete tcb) can only start when join_complete is 1
@@ -122,6 +126,10 @@ private:
 	int join_called;     //if join has been called
 	Lock *lock_join;
 	Condition *cv_join;
+
+	//priority related
+	int priority;
+	Lock *lock_priority;
 
     int* stack; 	 		// Bottom of the stack
     // NULL if this is the main thread

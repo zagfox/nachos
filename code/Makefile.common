@@ -54,7 +54,8 @@ THREAD_H =../threads/copyright.h\
 	../threads/badtest.h\
 	../threads/test_cond.h\
 	../threads/test_mailbox.h\
-	../threads/test_join.h
+	../threads/test_join.h\
+	../threads/test_priority.h
 
 THREAD_C =../threads/main.cc\
 	../threads/list.cc\
@@ -73,13 +74,14 @@ THREAD_C =../threads/main.cc\
 	../threads/badtest.cc\
 	../threads/test_cond.cc\
 	../threads/test_mailbox.cc\
-	../threads/test_join.cc
+	../threads/test_join.cc\
+	../threads/test_priority.cc
 
 THREAD_S = ../threads/switch.s
 
 THREAD_O =main.o list.o scheduler.o synch.o synchlist.o system.o thread.o \
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o \
-	mailbox.o badtest.o test_cond.o test_mailbox.o test_join.o
+	mailbox.o badtest.o test_cond.o test_mailbox.o test_join.o test_priority.o
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\

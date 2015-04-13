@@ -121,3 +121,11 @@ JoinTest3()
 		t2->Join();
 		printf("main end\n");
 }
+
+void
+JoinTest4()
+{
+		Thread *t1 = new Thread("t1", 0);
+
+		t1->Fork((VoidFunctionPtr) nojoin_thread, 0);
+}

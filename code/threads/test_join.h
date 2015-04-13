@@ -7,3 +7,6 @@ void JoinTest2();
 
 //join called more than once (ban)
 void JoinTest3();
+
+//simple no join
+void JoinTest4();

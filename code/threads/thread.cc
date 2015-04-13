@@ -48,6 +48,9 @@ Thread::Thread(char* threadName, int join)
 	join_called = 0;
 	lock_join = new Lock("lock_join");
 	cv_join = new Condition("cv_join");
+
+	priority = 0;
+	lock_priority = new Lock("lock_priority");
 }
 
 //----------------------------------------------------------------------
@@ -71,6 +74,7 @@ Thread::~Thread()
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 	delete lock_join;
 	delete cv_join;
+	delete lock_priority;
 }
 
 //----------------------------------------------------------------------
@@ -152,10 +156,13 @@ Thread::CheckOverflow()
 void
 Thread::Finish ()
 {
+	/*
+	//strange happens, sometimes, loop yield to self
+	//may need to go futher to scheduler, root thread
 	// add this to ensure all thread is deleted
 	while (threadToBeDestroyed != NULL) {
 		Yield();
-	}
+	}*/
 
     (void) interrupt->SetLevel(IntOff);
     ASSERT(this == currentThread);
@@ -231,6 +238,16 @@ Thread::Yield ()
         scheduler->Run(nextThread);
     }
     (void) interrupt->SetLevel(oldLevel);
+}
+
+void Thread::setPriority(int newPriority) {
+	lock_priority->Acquire();
+	priority = newPriority;
+	lock_priority->Release();
+}
+
+int Thread::getPriority() {
+	return priority;
 }
 
 //----------------------------------------------------------------------
