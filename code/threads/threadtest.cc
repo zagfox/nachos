@@ -15,6 +15,7 @@
 #include "badtest.h"
 #include "test_cond.h"
 #include "test_mailbox.h"
+#include "test_join.h"
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -134,6 +135,9 @@ ThreadTest()
         break;
     case 24:
         MailboxTest4();
+        break;
+    case 30:
+        TestForkerThread();
         break;
     default:
         printf("No test specified.\n");

@@ -55,6 +55,8 @@
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
 #define StackSize	(4 * 1024)	// in words
 
+class Lock;
+class Condition;
 
 // Thread state
 enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
@@ -81,7 +83,7 @@ private:
     int machineState[MachineStateSize];  // all registers except for stackTop
 
 public:
-    Thread(char* debugName);		// initialize a Thread
+    Thread(char* debugName, int join = 0);		// initialize a Thread
     ~Thread(); 				// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete
@@ -95,6 +97,7 @@ public:
     void Sleep();  				// Put the thread to sleep and
     // relinquish the processor
     void Finish();  				// The thread is done executing
+	void Join();
 
     void CheckOverflow();   			// Check if thread has
     // overflowed its stack
@@ -110,6 +113,10 @@ public:
 
 private:
     // some of the private data for this class is listed above
+	//join related
+	int joined;
+	Lock *lock_joined;
+	Condition *cv_joined;
 
     int* stack; 	 		// Bottom of the stack
     // NULL if this is the main thread
@@ -120,6 +127,7 @@ private:
     void StackAllocate(VoidFunctionPtr func, int arg);
     // Allocate a stack for thread.
     // Used internally by Fork()
+
 
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers --
