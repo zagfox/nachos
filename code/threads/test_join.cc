@@ -63,3 +63,61 @@ TestForkerThread()
 		printf("Forked off the joiner and joiner threads.\n");
 }
 
+//child finish first
+void
+JoinTest1()
+{
+		Thread *joiner = new Thread("joiner", 0);  // will not be joined
+		Thread *joinee = new Thread("joinee", 1);  // WILL be joined
+
+		// fork off the two threads and let them do their business
+		joinee->Fork((VoidFunctionPtr) Joinee, 0);
+		currentThread->Yield();
+		currentThread->Yield();
+		currentThread->Yield();
+		currentThread->Yield();
+		currentThread->Yield();
+		currentThread->Yield();
+
+		joiner->Fork((VoidFunctionPtr) Joiner, (int) joinee);
+
+		// this thread is done and can go on its merry way
+		printf("Forked off the joiner and joiner threads.\n");
+}
+
+void nojoin_thread(int param) {
+}
+
+//delete if no join called
+void
+JoinTest2()
+{
+		Thread *joiner = new Thread("t1", 0);
+		Thread *joinee = new Thread("t2", 0);
+
+		joiner->Fork((VoidFunctionPtr) nojoin_thread, 0);
+		joinee->Fork((VoidFunctionPtr) nojoin_thread, 0);
+		currentThread->Yield();
+		currentThread->Yield();
+		currentThread->Yield();
+		currentThread->Yield();
+		currentThread->Yield();
+
+		printf("Forked off the joiner and joiner threads.\n");
+}
+
+void
+JoinTest3()
+{
+		Thread *t1 = new Thread("t1", 1);
+		Thread *t2 = new Thread("t2", 1);
+
+		t1->Fork((VoidFunctionPtr) nojoin_thread, 0);
+		t1->Join();
+		t1->Join();
+		
+		t2->Fork((VoidFunctionPtr) nojoin_thread, 0);
+		t2->Join();
+		t2->Join();
+		printf("main end\n");
+}

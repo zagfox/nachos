@@ -139,6 +139,15 @@ ThreadTest()
     case 30:
         TestForkerThread();
         break;
+    case 31:
+        JoinTest1();
+        break;
+    case 32:
+        JoinTest2();
+        break;
+    case 33:
+        JoinTest3();
+        break;
     default:
         printf("No test specified.\n");
         break;

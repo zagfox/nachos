@@ -114,9 +114,14 @@ public:
 private:
     // some of the private data for this class is listed above
 	//join related
-	int joined;
-	Lock *lock_joined;
-	Condition *cv_joined;
+	// join can only start when join_ok is 0
+	// real finish(delete tcb) can only start when join_complete is 1
+	int join_need;       //if need to do join
+	int join_ready;	     // if ok to do join, 0 not, 1 is ready
+	int join_complete;   //if join has complete, 0 not, 1 is complete
+	int join_called;     //if join has been called
+	Lock *lock_join;
+	Condition *cv_join;
 
     int* stack; 	 		// Bottom of the stack
     // NULL if this is the main thread

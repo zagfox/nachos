@@ -41,9 +41,13 @@ Thread::Thread(char* threadName, int join)
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
-	joined = join;
-	lock_joined = new Lock("lock_joined");
-	cv_joined = new Condition("cv_joined");
+	ASSERT(join == 0 || join == 1);
+	join_need = join;
+	join_ready = 1 - join;
+	join_complete = 0;
+	join_called = 0;
+	lock_join = new Lock("lock_join");
+	cv_join = new Condition("cv_join");
 }
 
 //----------------------------------------------------------------------
@@ -65,8 +69,8 @@ Thread::~Thread()
     ASSERT(this != currentThread);
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
-	delete lock_joined;
-	delete cv_joined;
+	delete lock_join;
+	delete cv_join;
 }
 
 //----------------------------------------------------------------------
@@ -148,9 +152,25 @@ Thread::CheckOverflow()
 void
 Thread::Finish ()
 {
+	// add this to ensure all thread is deleted
+	while (threadToBeDestroyed != NULL) {
+		Yield();
+	}
+
     (void) interrupt->SetLevel(IntOff);
     ASSERT(this == currentThread);
+	
+	lock_join->Acquire();
+	join_ready = 1;
+	cv_join->Broadcast(lock_join);
 
+	//actual finish can start, when join complete
+	while (join_need == 1 && join_complete == 0) {
+		cv_join->Wait(lock_join);
+	}
+	lock_join->Release();
+
+	//actual finish
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
     threadToBeDestroyed = currentThread;
@@ -161,6 +181,20 @@ Thread::Finish ()
 void 
 Thread::Join () {
 	ASSERT(this != currentThread);
+	ASSERT(stack != NULL);    //p1.6, thread must be forked
+	ASSERT(join_called == 0); //p1.7, only called once
+
+	lock_join->Acquire();
+
+	join_called++;
+	//join can start 1.no join required 2.finish is called
+	while (join_ready == 0) {
+		cv_join->Wait(lock_join);
+	}
+	join_complete = 1;
+	cv_join->Broadcast(lock_join);
+
+	lock_join->Release();
 }
 
 //----------------------------------------------------------------------
