@@ -116,44 +116,50 @@ ThreadTest()
     case 2:
         ThreadTestBad();
         break;
-    case 10:
+    case 110:
         LockTest1();
         break;
-    case 12:
+    case 112:
         CondTestSignal();
         break;
-    case 13:
+    case 113:
         CondTestBroadcast();
         break;
-    case 21:
+    case 121:
         MailboxTest1();
         break;
-    case 22:
+    case 122:
         MailboxTest2();
         break;
-    case 23:
+    case 123:
         MailboxTest3();
         break;
-    case 24:
+    case 124:
         MailboxTest4();
         break;
-    case 30:
+    case 130:
         TestForkerThread();
         break;
-    case 31:
+    case 131:
         JoinTest1();
         break;
-    case 32:
+    case 132:
         JoinTest2();
         break;
-    case 33:
+    case 133:
         JoinTest3();
         break;
-    case 34:
+    case 134:
         JoinTest4();
         break;
-    case 40:
+    case 140:
         PriorityTest0();
+        break;
+    case 141:
+        PriorityTest1();
+        break;
+    case 142:
+        PriorityTest2();
         break;
     default:
         printf("No test specified.\n");

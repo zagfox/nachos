@@ -156,15 +156,7 @@ Thread::CheckOverflow()
 void
 Thread::Finish ()
 {
-	/*
-	//strange happens, sometimes, loop yield to self
-	//may need to go futher to scheduler, root thread
-	// add this to ensure all thread is deleted
-	while (threadToBeDestroyed != NULL) {
-		Yield();
-	}*/
-
-    (void) interrupt->SetLevel(IntOff);
+	(void) interrupt->SetLevel(IntOff);
     ASSERT(this == currentThread);
 	
 	lock_join->Acquire();

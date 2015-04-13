@@ -86,6 +86,8 @@ JoinTest1()
 }
 
 void nojoin_thread(int param) {
+	printf("in nojoin_thread\n");
+	currentThread->Yield();
 }
 
 //delete if no join called
@@ -97,11 +99,6 @@ JoinTest2()
 
 		joiner->Fork((VoidFunctionPtr) nojoin_thread, 0);
 		joinee->Fork((VoidFunctionPtr) nojoin_thread, 0);
-		currentThread->Yield();
-		currentThread->Yield();
-		currentThread->Yield();
-		currentThread->Yield();
-		currentThread->Yield();
 
 		printf("Forked off the joiner and joiner threads.\n");
 }

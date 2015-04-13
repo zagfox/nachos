@@ -67,7 +67,8 @@ Semaphore::P()
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 
     while (value == 0) { 			// semaphore not available
-        queue->Append((void *)currentThread);	// so go to sleep
+		queue->SortedInsert((void*)currentThread, -currentThread->getPriority());
+        // so go to sleep
         currentThread->Sleep();
     }
     value--; 					// semaphore available,
@@ -118,7 +119,7 @@ void Lock::Acquire() {
     ASSERT(owner != currentThread); //1.1 acquire same lock twice
 
     while (owner != NULL) {
-    	this->queue->Append((void*)currentThread);
+    	queue->SortedInsert((void*)currentThread, -currentThread->getPriority());
 		currentThread->Sleep();
     }
     this->owner = currentThread;
@@ -158,7 +159,7 @@ Condition::~Condition() {
 void Condition::Wait(Lock* conditionLock) {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 
-	this->queue->Append((void*)currentThread);
+    queue->SortedInsert((void*)currentThread, -currentThread->getPriority());
 	conditionLock->Release();
 	currentThread->Sleep();
 	conditionLock->Acquire();
