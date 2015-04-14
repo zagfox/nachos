@@ -110,11 +110,11 @@ JoinTest3()
 		Thread *t2 = new Thread("t2", 1);
 
 		t1->Fork((VoidFunctionPtr) nojoin_thread, 0);
-		t1->Join();
+		//t1->Join();
 		t1->Join();
 		
 		t2->Fork((VoidFunctionPtr) nojoin_thread, 0);
-		t2->Join();
+		//t2->Join();
 		t2->Join();
 		printf("main end\n");
 }

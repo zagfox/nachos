@@ -121,8 +121,7 @@ void Lock::Acquire() {
 
     if (owner != NULL) {
 		//temporary give owner a higher priority
-		owner->upgradePriority(max(owner_priority, currentThread->getPriority()));
-		scheduler->reScheduleThread(owner);
+		owner->upgradePriority(currentThread->getPriority());
 
     	queue->SortedInsert((void*)currentThread, -currentThread->getPriority());
 		currentThread->Sleep();
@@ -146,7 +145,6 @@ void Lock::Release() {
 
 	//back to original priority
 	owner->revertPriority();
-	scheduler->reScheduleThread(owner);
 
     owner = NULL;
 

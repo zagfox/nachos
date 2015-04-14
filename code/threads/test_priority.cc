@@ -117,3 +117,34 @@ void PriorityInversionTest1() {
 	t->setPriority(3);
 	t->Fork(hold_lock_thread2, (int)args);
 }
+
+void t1_thread(int args) {
+	printf("a %s\n", currentThread->getName());
+}
+void t2_thread(int args) {
+	printf("a %s\n", currentThread->getName());
+}
+void t3_thread(int _args) {
+	int* args = (int*)_args;
+	Thread *t = (Thread*)args[0];
+
+	printf("a %s\n", currentThread->getName());
+	t->Join();
+	printf("b %s\n", currentThread->getName());
+}
+
+void PriorityInversionTest2() {
+	Thread *t1 = new Thread("t1", 1);
+	t1->setPriority(1);
+	t1->Fork((VoidFunctionPtr)t1_thread, 0);
+
+	Thread *t2 = new Thread("t2", 0);
+	t2->setPriority(2);
+	t2->Fork((VoidFunctionPtr)t2_thread, 0);
+
+	int *args = new int;
+	args[0] = (int)t1;
+	Thread *t3 = new Thread("t3", 0);
+	t3->setPriority(3);
+	t3->Fork((VoidFunctionPtr)t3_thread, (int)args);
+}

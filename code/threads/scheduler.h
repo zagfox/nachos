@@ -28,8 +28,6 @@ public:
     void Run(Thread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
 
-	void reScheduleThread(Thread* thread);  //thread priority chagne, reschedule
-
 private:
     List *readyList;  		// queue of threads that are ready to run,
     // but not running

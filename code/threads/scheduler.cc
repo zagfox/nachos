@@ -70,6 +70,21 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
+	List *buf_list = new List;
+	void *ptr = NULL;
+	while (!readyList->IsEmpty()) {
+		ptr = readyList->Remove();
+		buf_list->Append(ptr);
+	}
+
+	//Reinsert the items
+	while (!buf_list->IsEmpty()) {
+		ptr = buf_list->Remove();
+    	readyList->SortedInsert(ptr, -((Thread*)ptr)->getPriority());
+	}
+	delete buf_list;
+
+	//get next thread
     return (Thread *)readyList->Remove();
 }
 
@@ -146,29 +161,4 @@ Scheduler::Print()
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
 }
 	
-	
-void Scheduler::reScheduleThread(Thread* thread) {
-	List *buf_list = new List;
-	void *ptr = NULL;
-
-	while (!readyList->IsEmpty()) {
-		ptr = readyList->Remove();
-		if (ptr != thread) {
-			buf_list->Append(ptr);
-		} else {
-			break;
-		}
-	}
-
-	//Reinsert the items
-	if (ptr == thread) {  //if found
-    	readyList->SortedInsert(ptr, -((Thread*)ptr)->getPriority());
-	}
-	while (!buf_list->IsEmpty()) {
-		ptr = buf_list->Remove();
-    	readyList->SortedInsert(ptr, -((Thread*)ptr)->getPriority());
-	}
-
-	delete buf_list;
-}
 

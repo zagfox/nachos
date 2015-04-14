@@ -164,6 +164,9 @@ Thread::Finish ()
 	join_ready = 1;
 	cv_join->Broadcast(lock_join);
 
+	//chagne back priority
+	currentThread->revertPriority();
+
 	//actual finish can start, when join complete
 	while (join_need == 1 && join_complete == 0) {
 		cv_join->Wait(lock_join);
@@ -189,6 +192,9 @@ Thread::Join () {
 	join_called++;
 	//join can start 1.no join required 2.finish is called
 	while (join_ready == 0) {
+		//give thread high priority
+		this->upgradePriority(currentThread->getPriority());
+		//wait
 		cv_join->Wait(lock_join);
 	}
 	join_complete = 1;
@@ -243,11 +249,11 @@ int Thread::getPriority() {
 
 void Thread::upgradePriority(int newPriority) {
 	priority_queue->Prepend((void*)priority);
-	priority = newPriority;
+	priority = max(newPriority, priority);
 }
 
 void Thread::revertPriority() {
-	if (!priority_queue->IsEmpty()) {
+	while (!priority_queue->IsEmpty()) {
 		priority = (int)priority_queue->Remove();
 	}
 }
