@@ -102,9 +102,10 @@ Semaphore::V()
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
 Lock::Lock(char* debugName) {
-    this->name = debugName;
-    this->owner = NULL;
-    this->queue = new List;
+    name = debugName;
+    owner = NULL;
+	owner_priority = 0;
+    queue = new List;
 }
 
 Lock::~Lock() {
@@ -118,11 +119,16 @@ void Lock::Acquire() {
 
     ASSERT(owner != currentThread); //1.1 acquire same lock twice
 
-    while (owner != NULL) {
+    if (owner != NULL) {
+		//temporary give owner a higher priority
+		owner->upgradePriority(max(owner_priority, currentThread->getPriority()));
+		scheduler->reScheduleThread(owner);
+
     	queue->SortedInsert((void*)currentThread, -currentThread->getPriority());
 		currentThread->Sleep();
     }
-    this->owner = currentThread;
+
+    owner = currentThread;
     
     interrupt->SetLevel(oldLevel);
 }
@@ -133,11 +139,17 @@ void Lock::Release() {
 
     ASSERT(owner == currentThread);  //1.2 release must hold by self
 
-    thread = (Thread*) this->queue->Remove();
+    thread = (Thread*) queue->Remove();
     if (thread != NULL) {
     	scheduler->ReadyToRun(thread);
     }
+
+	//back to original priority
+	owner->revertPriority();
+	scheduler->reScheduleThread(owner);
+
     owner = NULL;
+
     interrupt->SetLevel(oldLevel);
 }
 

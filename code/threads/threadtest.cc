@@ -161,6 +161,9 @@ ThreadTest()
     case 142:
         PriorityTest2();
         break;
+    case 143:
+        PriorityInversionTest1();
+        break;
     default:
         printf("No test specified.\n");
         break;

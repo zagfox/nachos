@@ -50,7 +50,7 @@ Thread::Thread(char* threadName, int join)
 	cv_join = new Condition("cv_join");
 
 	priority = 0;
-	lock_priority = new Lock("lock_priority");
+	priority_queue = new List;
 }
 
 //----------------------------------------------------------------------
@@ -74,7 +74,8 @@ Thread::~Thread()
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 	delete lock_join;
 	delete cv_join;
-	delete lock_priority;
+
+	delete priority_queue;
 }
 
 //----------------------------------------------------------------------
@@ -233,13 +234,22 @@ Thread::Yield ()
 }
 
 void Thread::setPriority(int newPriority) {
-	lock_priority->Acquire();
 	priority = newPriority;
-	lock_priority->Release();
 }
 
 int Thread::getPriority() {
 	return priority;
+}
+
+void Thread::upgradePriority(int newPriority) {
+	priority_queue->Prepend((void*)priority);
+	priority = newPriority;
+}
+
+void Thread::revertPriority() {
+	if (!priority_queue->IsEmpty()) {
+		priority = (int)priority_queue->Remove();
+	}
 }
 
 //----------------------------------------------------------------------

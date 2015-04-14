@@ -7,3 +7,5 @@ void PriorityTest1();
 
 //lock priority
 void PriorityTest2();
+
+void PriorityInversionTest1();

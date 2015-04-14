@@ -82,8 +82,10 @@ public:
     // Condition variable ops below.
 
 private:
+	//void updateQueue(void *item);     //for the item, update the waiting queue
     char* name;				// for debugging
     Thread *owner;                     //owner, free NULL, busy id
+	int owner_priority;
     List *queue;
     // plus some other stuff you'll need to define
 };

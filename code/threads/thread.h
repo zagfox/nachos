@@ -55,6 +55,7 @@
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
 #define StackSize	(4 * 1024)	// in words
 
+class List;
 class Lock;
 class Condition;
 
@@ -101,6 +102,8 @@ public:
 
 	void setPriority(int newPriority);
 	int  getPriority();
+	void upgradePriority(int newPriority);
+	void revertPriority();
 
     void CheckOverflow();   			// Check if thread has
     // overflowed its stack
@@ -111,7 +114,7 @@ public:
         return (name);
     }
     void Print() {
-        printf("%s, ", name);
+        printf("%s, %d", name, priority);
     }
 
 private:
@@ -129,7 +132,7 @@ private:
 
 	//priority related
 	int priority;
-	Lock *lock_priority;
+	List *priority_queue;  //a queue of original priority
 
     int* stack; 	 		// Bottom of the stack
     // NULL if this is the main thread
