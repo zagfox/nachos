@@ -17,6 +17,7 @@
 #include "test_mailbox.h"
 #include "test_join.h"
 #include "test_priority.h"
+#include "test_whale.h"
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -166,6 +167,15 @@ ThreadTest()
         break;
     case 144:
         PriorityInversionTest2();
+        break;
+    case 150:
+        WhaleTest0();
+        break;
+    case 151:
+        WhaleTest1();
+        break;
+    case 152:
+        WhaleTest2();
         break;
     default:
         printf("No test specified.\n");

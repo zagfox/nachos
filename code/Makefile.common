@@ -51,11 +51,13 @@ THREAD_H =../threads/copyright.h\
 	../machine/stats.h\
 	../machine/timer.h\
 	../threads/mailbox.h\
+	../threads/whale.h\
 	../threads/badtest.h\
 	../threads/test_cond.h\
 	../threads/test_mailbox.h\
 	../threads/test_join.h\
-	../threads/test_priority.h
+	../threads/test_priority.h\
+	../threads/test_whale.h
 
 THREAD_C =../threads/main.cc\
 	../threads/list.cc\
@@ -71,17 +73,20 @@ THREAD_C =../threads/main.cc\
 	../machine/stats.cc\
 	../machine/timer.cc\
 	../threads/mailbox.cc\
+	../threads/whale.cc\
 	../threads/badtest.cc\
 	../threads/test_cond.cc\
 	../threads/test_mailbox.cc\
 	../threads/test_join.cc\
-	../threads/test_priority.cc
+	../threads/test_priority.cc\
+	../threads/test_whale.cc
 
 THREAD_S = ../threads/switch.s
 
 THREAD_O =main.o list.o scheduler.o synch.o synchlist.o system.o thread.o \
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o \
-	mailbox.o badtest.o test_cond.o test_mailbox.o test_join.o test_priority.o
+	mailbox.o whale.o \
+	badtest.o test_cond.o test_mailbox.o test_join.o test_priority.o test_whale.o
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\
