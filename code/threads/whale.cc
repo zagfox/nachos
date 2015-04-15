@@ -39,7 +39,7 @@ Whale::~Whale() {
 
 void Whale::Male() {
 	whaleLock->Acquire();
-	maleReady = 1;
+	maleReady++;
 	if (!(maleReady && femaleReady && makerReady)) {
 		maleCv->Wait(whaleLock);
 	} else {
@@ -47,13 +47,13 @@ void Whale::Male() {
 		makerCv->Signal(whaleLock);
 	}
 
-	maleReady = 0;
+	maleReady--;
 	whaleLock->Release();
 }
 
 void Whale::Female() {
 	whaleLock->Acquire();
-	femaleReady = 1;
+	femaleReady++;
 	if (!(maleReady && femaleReady && makerReady)) {
 		femaleCv->Wait(whaleLock);
 	} else {
@@ -61,22 +61,21 @@ void Whale::Female() {
 		makerCv->Signal(whaleLock);
 	}
 
-	femaleReady = 0;
+	femaleReady--;
 	whaleLock->Release();
-
 }
 
 void Whale::Matchmaker() {
 	whaleLock->Acquire();
-	makerReady = 1;
+	makerReady++;
 	if (!(maleReady && femaleReady && makerReady)) {
+		printf("maker wait\n");
 		makerCv->Wait(whaleLock);
 	} else {
 		maleCv->Signal(whaleLock);
 		femaleCv->Signal(whaleLock);
 	}
 
-	makerReady = 0;
-	//printf("one pair ok\n");
+	makerReady--;
 	whaleLock->Release();
 }

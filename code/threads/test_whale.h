@@ -1,4 +1,8 @@
 
+//m: male
+//f: female
+//c: match maker
+
 //mm f
 void WhaleTest0();
 

@@ -74,7 +74,7 @@ void WhaleTest2() {
 	t = new Thread("female1");
 	t->Fork(femaleThread, (int)args);
 
-	//currentThread->Yield();
+	currentThread->Yield();
 	
 	t = new Thread("female2");
 	t->Fork(femaleThread, (int)args);
@@ -85,7 +85,7 @@ void WhaleTest2() {
 	t = new Thread("maker1");
 	t->Fork(makerThread, (int)args);
 
-	//currentThread->Yield();
+	currentThread->Yield();
 
 	t = new Thread("maker2");
 	t->Fork(makerThread, (int)args);
