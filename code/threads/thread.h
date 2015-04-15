@@ -55,7 +55,6 @@
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
 #define StackSize	(4 * 1024)	// in words
 
-class List;
 class Lock;
 class Condition;
 
@@ -132,7 +131,7 @@ private:
 
 	//priority related
 	int priority;
-	List *priority_queue;  //a queue of original priority
+	int priority_base;    //priority without upgrade
 
     int* stack; 	 		// Bottom of the stack
     // NULL if this is the main thread

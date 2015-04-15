@@ -49,17 +49,22 @@ BadSimpleThread(int which)
 void
 ThreadTestBad()
 {
-    int i;
+    //int i;
 
     DEBUG('t', "Entering BadSimpleTest");
 
     sharedValue = 0;
     l = new Lock("l1");
 
-    for (i = 0; i < 2; i++) {
+    /*for (i = 0; i < 2; i++) {
       Thread *t = new Thread("forked thread");
       t->Fork(BadSimpleThread, i);
-    }
+    }*/
+      Thread *t;
+	  t = new Thread("t1");
+      t->Fork(BadSimpleThread, 1);
+      t = new Thread("t2");
+      t->Fork(BadSimpleThread, 2);
 
     delete l;
 }
