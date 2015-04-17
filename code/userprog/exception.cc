@@ -48,16 +48,52 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+// First trial, need change
+SpaceId handleExec(char *name, int argc, char **argv, int opt) {
+	OpenFile *executable = fileSystem->Open(name);
+	AddrSpace *space;
+	if (executable == NULL) {
+		printf("Unable to open file %s\n", name);
+		return 0;  
+	}
+
+	space = new AddrSpace(executable);
+    currentThread->space = space;
+
+	delete executable;
+
+	space->InitRegisters();
+	space->RestoreState();
+
+	//Thread *t = new Thread("t");
+	//t->space = space;
+
+	machine->Run();
+	ASSERT(FALSE);
+
+	return 0;
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
+    int arg1 = machine->ReadRegister(4);
+    int arg2 = machine->ReadRegister(5);
+    int arg3 = machine->ReadRegister(6);
+    int arg4 = machine->ReadRegister(7);
 
     if ((which == SyscallException) && (type == SC_Halt)) {
         DEBUG('a', "Shutdown, initiated by user program.\n");
         interrupt->Halt();
+    } else if ((which == SyscallException) && (type == SC_Exec)) {
+        DEBUG('a', "Syscall Exec\n");
+		int ret = handleExec((char*)arg1, arg2, (char**)arg3, arg4);
+		machine->WriteRegister(2, ret);
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
     }
+
+	interrupt->OneTick();
 }

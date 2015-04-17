@@ -23,6 +23,8 @@
 #include <strings.h>
 #endif
 
+#include "memory_manager.h"
+
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the
