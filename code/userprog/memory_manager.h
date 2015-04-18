@@ -1,4 +1,6 @@
 #include "system.h"
+#include "bitmap.h"
+#include "synch.h"
 
 class MemoryManager {
 public:
@@ -14,4 +16,9 @@ public:
 
 	/* True if the physical page is allocated, false otherwise. */
 	bool PageIsAllocated(int physPageNum);
+
+private:
+	int mem_page_size;
+	BitMap *mem_map;
+	Lock *mem_lock;
 };
