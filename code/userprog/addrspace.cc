@@ -23,7 +23,7 @@
 #include <strings.h>
 #endif
 
-#include "memory_manager.h"
+MemoryManager *memoryMgr = NULL;
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -64,6 +64,8 @@ SwapHeader (NoffHeader *noffH)
 
 AddrSpace::AddrSpace(OpenFile *executable)
 {
+	ASSERT(memoryMgr != NULL);
+
     NoffHeader noffH;
     unsigned int i, size;
 

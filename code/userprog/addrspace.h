@@ -15,8 +15,11 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "memory_manager.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
+
+extern MemoryManager *memoryMgr;  // Todo, make it static in addrSpace
 
 class AddrSpace {
 public:

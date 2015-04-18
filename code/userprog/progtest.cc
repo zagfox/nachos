@@ -23,6 +23,9 @@
 void
 StartProcess(char *filename)
 {
+	// init MemoryManager in AddrSpace
+	memoryMgr = new MemoryManager(NumPhysPages);
+
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
 

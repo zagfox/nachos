@@ -1,4 +1,5 @@
 #include "memory_manager.h"
+#include "synch.h"
 
 MemoryManager::MemoryManager(int numPages) {
 	mem_page_size = numPages;

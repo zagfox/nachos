@@ -1,6 +1,9 @@
-#include "system.h"
+#ifndef MEMORY_MANAGER_H
+#define MEMORY_MANAGER_H
+
 #include "bitmap.h"
-#include "synch.h"
+
+class Lock;
 
 class MemoryManager {
 public:
@@ -22,3 +25,5 @@ private:
 	BitMap *mem_map;
 	Lock *mem_lock;
 };
+
+#endif // MEMORY_MANAGER_H
