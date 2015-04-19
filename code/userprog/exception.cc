@@ -25,6 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 
+#define FILE_NAME_MAX_LEN 80
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -48,15 +50,38 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+int copyFileName(int src_virt_addr, char *dst_phys_addr, int max_len) {
+	char c;
+	int i, v;
+	for (i = 0; i < max_len; i++) {
+		machine->ReadMem(src_virt_addr + i, 1, &v);  //not 100% sure...
+		//machine->WriteMem(dst_phys_addr + i, 1, v);
+		c = (char)v;
+		dst_phys_addr[i] = c;
+		if (c == 0) {
+			return 0;
+		}
+	}
+	return -1; // error
+}
+
 // First trial, need change
-SpaceId handleExec(char *name, int argc, char **argv, int opt) {
-	//need copy name to kernel memory
-	// then else
+SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
+	// need copy name to kernel memory
+	char name[FILE_NAME_MAX_LEN + 1];
+	name[FILE_NAME_MAX_LEN] = 0;
+	if (copyFileName(name_va, name, FILE_NAME_MAX_LEN) != 0) {
+		printf("Parse Filename Error\n");
+		return 0;
+	}
+	printf("handleExec copied_name: %s\n", name);
+
+	// then exec
 	OpenFile *executable = fileSystem->Open(name);
 	AddrSpace *space;
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", name);
-		return 0;  
+		return 0;
 	}
 
 	space = new AddrSpace();
@@ -95,7 +120,7 @@ ExceptionHandler(ExceptionType which)
         interrupt->Halt();
     } else if ((which == SyscallException) && (type == SC_Exec)) {
         DEBUG('a', "Syscall Exec\n");
-		int ret = handleExec((char*)arg1, arg2, (char**)arg3, arg4);
+		int ret = handleExec(arg1, arg2, (char**)arg3, arg4);
 		machine->WriteRegister(2, ret);
     } else if ((which == SyscallException) && (type == SC_Exit)) {
         DEBUG('a', "Syscall Exit, %d\n", arg1);
