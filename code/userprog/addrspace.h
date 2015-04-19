@@ -21,7 +21,9 @@
 
 extern MemoryManager *memoryMgr;  // Todo, make it static in addrSpace
 
-//struct Segment;
+// forward declaration
+struct segment;
+typedef struct segment Segment;
 
 class AddrSpace {
 public:
@@ -39,7 +41,7 @@ public:
     void RestoreState();		// info on a context switch
 
 private:
-	//void loadSegment(void *_seg);
+	void loadSegment(OpenFile *executable, Segment *seg, bool readonly);
     TranslationEntry *pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;		// Number of pages in the virtual
