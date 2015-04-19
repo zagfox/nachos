@@ -57,7 +57,8 @@ SpaceId handleExec(char *name, int argc, char **argv, int opt) {
 		return 0;  
 	}
 
-	space = new AddrSpace(executable);
+	space = new AddrSpace();
+	space->Initialize(executable);
     currentThread->space = space;
 
 	delete executable;
