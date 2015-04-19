@@ -74,6 +74,10 @@ Thread::~Thread()
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 	delete lock_join;
 	delete cv_join;
+
+#ifdef USER_PROGRAM
+	delete space;
+#endif
 }
 
 //----------------------------------------------------------------------

@@ -86,7 +86,7 @@ void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
 	int virtPageId, physAddr, pageOffset;
 	int readSize;
 	filePos = 0;	  
-	if (FALSE) {
+	if (TRUE) {
 	if (seg->size > 0 && seg->virtualAddr % PageSize != 0) {
 		virtPageId = seg->virtualAddr / PageSize;
 		pageOffset = seg->virtualAddr % PageSize;
@@ -207,6 +207,14 @@ int AddrSpace::Initialize(OpenFile *executable) {
 
 AddrSpace::~AddrSpace()
 {
+	// free the memory in memoryMgr
+	unsigned int i;
+	int pageId;
+	for (i = 0; i < numPages; i++) {
+		pageId = pageTable[i].physicalPage;
+		memoryMgr->FreePage(pageId);
+	}
+
     delete [] pageTable;
 }
 

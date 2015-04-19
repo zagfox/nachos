@@ -50,6 +50,8 @@
 
 // First trial, need change
 SpaceId handleExec(char *name, int argc, char **argv, int opt) {
+	//need copy name to kernel memory
+	// then else
 	OpenFile *executable = fileSystem->Open(name);
 	AddrSpace *space;
 	if (executable == NULL) {
@@ -75,6 +77,10 @@ SpaceId handleExec(char *name, int argc, char **argv, int opt) {
 	return 0;
 }
 
+void handleExit(int status) {
+	currentThread->Finish();
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -91,6 +97,9 @@ ExceptionHandler(ExceptionType which)
         DEBUG('a', "Syscall Exec\n");
 		int ret = handleExec((char*)arg1, arg2, (char**)arg3, arg4);
 		machine->WriteRegister(2, ret);
+    } else if ((which == SyscallException) && (type == SC_Exit)) {
+        DEBUG('a', "Syscall Exit, %d\n", arg1);
+		handleExit(arg1);
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
