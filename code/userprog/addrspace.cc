@@ -258,7 +258,6 @@ AddrSpace::InitRegisters()
 
 void AddrSpace::SaveState()
 {
-	//currentThread->SaveUserState();
 }
 
 //----------------------------------------------------------------------
@@ -273,6 +272,4 @@ void AddrSpace::RestoreState()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
-
-	//currentThread->RestoreUserState();
 }

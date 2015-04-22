@@ -4,5 +4,10 @@
 
 int main() {
 	//Halt();
-	Exit(0);
+	int x;
+	x = 1;
+	int y;
+	y = x + 1;
+	char *ptr = "abc";
+	Exit(1);
 }

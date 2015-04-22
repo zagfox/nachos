@@ -67,9 +67,14 @@ int copyFileName(int src_virt_addr, char *dst_phys_addr, int max_len) {
 	return -1; // error
 }
 
+void exec_func(int args) {
+	machine->Run();
+	ASSERT(FALSE);
+}
+
 // First trial, need change
 SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
-	// need copy name to kernel memory
+	// copy name to kernel memory
 	char name[FILE_NAME_MAX_LEN + 1];
 	name[FILE_NAME_MAX_LEN] = 0;
 	if (copyFileName(name_va, name, FILE_NAME_MAX_LEN) != 0) {
@@ -88,23 +93,23 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 
 	space = new AddrSpace();
 	space->Initialize(executable);
-    currentThread->space = space;
-
+	space->InitRegisters();
 	delete executable;
 
-	space->InitRegisters();
-	space->RestoreState();
+	printf("currentThread a %d\n", (int)currentThread);
+	Thread *t = new Thread("exec thread");
+	printf("thread %d\n", (int)t);
+	t->space = space;
+	int id = spaceIdTable->Alloc((void*)t);
 
-	//Thread *t = new Thread("t");
-	//t->space = space;
+	// context switch
+	t->Fork(exec_func, (int)space);
 
-	machine->Run();
-	ASSERT(FALSE);
-
-	return 0;
+	return id;
 }
 
 void handleExit(int status) {
+	printf("currentThread Exit%d\n", (int)currentThread);
 	currentThread->Finish();
 }
 
@@ -126,11 +131,18 @@ ExceptionHandler(ExceptionType which)
 		machine->WriteRegister(2, ret);
     } else if ((which == SyscallException) && (type == SC_Exit)) {
         DEBUG('a', "Syscall Exit, %d\n", arg1);
+		printf("Syscall Exit: %d\n", arg1);
 		handleExit(arg1);
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
     }
 
-	interrupt->OneTick();
+	int PC, nextPC;
+	PC = machine->ReadRegister(PCReg);
+	nextPC = machine->ReadRegister(NextPCReg);
+	//printf("%d %d %d\n", prevPC, PC, nextPC);
+	machine->WriteRegister(PrevPCReg, PC);
+	machine->WriteRegister(PCReg, nextPC);
+	machine->WriteRegister(NextPCReg, nextPC + 4);
 }
