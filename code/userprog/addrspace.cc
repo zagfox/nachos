@@ -23,8 +23,6 @@
 #include <strings.h>
 #endif
 
-MemoryManager *memoryMgr = NULL;
-
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the
@@ -259,7 +257,9 @@ AddrSpace::InitRegisters()
 //----------------------------------------------------------------------
 
 void AddrSpace::SaveState()
-{}
+{
+	//currentThread->SaveUserState();
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
@@ -273,4 +273,6 @@ void AddrSpace::RestoreState()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+
+	//currentThread->RestoreUserState();
 }

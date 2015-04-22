@@ -194,7 +194,6 @@ extern void ExceptionHandler(ExceptionType which);
 // user system calls and exceptions
 // Defined in exception.cc
 
-
 // Routines for converting Words and Short Words to and from the
 // simulated machine's format of little endian.  If the host machine
 // is little endian (DEC and Intel), these end up being NOPs.

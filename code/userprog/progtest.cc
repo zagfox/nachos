@@ -13,6 +13,10 @@
 #include "console.h"
 #include "addrspace.h"
 #include "synch.h"
+#include "table.h"
+
+MemoryManager *memoryMgr = NULL;
+Table *spaceIdTable = NULL;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -25,6 +29,7 @@ StartProcess(char *filename)
 {
 	// init MemoryManager in AddrSpace
 	memoryMgr = new MemoryManager(NumPhysPages);
+	spaceIdTable = new Table(1);
 
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
@@ -46,6 +51,9 @@ StartProcess(char *filename)
     ASSERT(FALSE);			// machine->Run never returns;
     // the address space exits
     // by doing the syscall "exit"
+
+	// may not reach, but need to do this
+	delete memoryMgr;
 }
 
 // Data structures needed for the console test.  Threads making

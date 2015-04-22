@@ -19,7 +19,6 @@
 
 #define UserStackSize		1024 	// increase this as necessary!
 
-extern MemoryManager *memoryMgr;  // Todo, make it static in addrSpace
 
 // forward declaration
 struct segment;

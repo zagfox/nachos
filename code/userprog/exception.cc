@@ -54,7 +54,9 @@ int copyFileName(int src_virt_addr, char *dst_phys_addr, int max_len) {
 	char c;
 	int i, v;
 	for (i = 0; i < max_len; i++) {
-		machine->ReadMem(src_virt_addr + i, 1, &v);  //not 100% sure...
+		if (!machine->ReadMem(src_virt_addr + i, 1, &v)) {  //not 100% sure...
+			return -1;
+		}
 		//machine->WriteMem(dst_phys_addr + i, 1, v);
 		c = (char)v;
 		dst_phys_addr[i] = c;
