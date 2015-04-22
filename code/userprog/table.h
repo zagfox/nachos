@@ -13,7 +13,7 @@ public:
 	~Table();
 
 	/* Allocate a table slot for "object", returning the "index" of the
-	   allocated entry; otherwise, return -1 if no free slots are available. */
+	   allocated entry; otherwise, return 0 if no free slots are available. */
 	int Alloc(void *object);
 
 	/* Retrieve the object from table slot at "index", or NULL if that

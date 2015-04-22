@@ -68,11 +68,12 @@ int copyFileName(int src_virt_addr, char *dst_phys_addr, int max_len) {
 }
 
 void exec_func(int args) {
+	currentThread->space->InitRegisters();
+    currentThread->space->RestoreState();		// load page table register
 	machine->Run();
 	ASSERT(FALSE);
 }
 
-// First trial, need change
 SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 	// copy name to kernel memory
 	char name[FILE_NAME_MAX_LEN + 1];
@@ -81,7 +82,7 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 		printf("Parse Filename Error\n");
 		return 0;
 	}
-	printf("handleExec copied_name: %s\n", name);
+	//printf("handleExec copied_name: %s\n", name);
 
 	// then exec
 	OpenFile *executable = fileSystem->Open(name);
@@ -93,14 +94,17 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 
 	space = new AddrSpace();
 	space->Initialize(executable);
-	space->InitRegisters();
 	delete executable;
 
-	printf("currentThread a %d\n", (int)currentThread);
 	Thread *t = new Thread("exec thread");
-	printf("thread %d\n", (int)t);
+	printf("Exec, currentThread %d, forkedThread %d\n", (int)currentThread, (int)t);
 	t->space = space;
-	int id = spaceIdTable->Alloc((void*)t);
+
+	// Manage space Id
+	int id;
+	if (0 == (id = spaceIdTable->Alloc((void*)t))) {
+		return 0;
+	}
 
 	// context switch
 	t->Fork(exec_func, (int)space);
@@ -109,7 +113,8 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 }
 
 void handleExit(int status) {
-	printf("currentThread Exit%d\n", (int)currentThread);
+	//Todo, release spaceId table
+
 	currentThread->Finish();
 }
 
@@ -123,25 +128,24 @@ ExceptionHandler(ExceptionType which)
     int arg4 = machine->ReadRegister(7);
 
     if ((which == SyscallException) && (type == SC_Halt)) {
-        DEBUG('a', "Shutdown, initiated by user program.\n");
+        printf("Shutdown, initiated by user program.\n");
         interrupt->Halt();
     } else if ((which == SyscallException) && (type == SC_Exec)) {
-        DEBUG('a', "Syscall Exec\n");
+        printf("Syscall Exec\n");
 		int ret = handleExec(arg1, arg2, (char**)arg3, arg4);
 		machine->WriteRegister(2, ret);
     } else if ((which == SyscallException) && (type == SC_Exit)) {
-        DEBUG('a', "Syscall Exit, %d\n", arg1);
-		printf("Syscall Exit: %d\n", arg1);
+        printf("Syscall Exit, Thread %d, code %d\n", (int)currentThread, arg1);
 		handleExit(arg1);
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
     }
 
+	// Inc PC
 	int PC, nextPC;
 	PC = machine->ReadRegister(PCReg);
 	nextPC = machine->ReadRegister(NextPCReg);
-	//printf("%d %d %d\n", prevPC, PC, nextPC);
 	machine->WriteRegister(PrevPCReg, PC);
 	machine->WriteRegister(PCReg, nextPC);
 	machine->WriteRegister(NextPCReg, nextPC + 4);

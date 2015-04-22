@@ -25,14 +25,16 @@ int Table::Alloc(void *object) {
 		}
 	}
 	lock->Release();
-	return i == size ? -1 : i;
+	return i == size ? 0 : (i+1);
 }
 
-void* Table::Get(int index) {
+void* Table::Get(int _index) {
+	int index = _index - 1;
 	return (void*)array[index];
 }
 
-void Table::Release(int index) {
+void Table::Release(int _index) {
+	int index = _index - 1;
 	lock->Acquire();
 	array[index] = 0;
 	lock->Release();
