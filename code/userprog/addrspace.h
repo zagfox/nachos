@@ -19,8 +19,8 @@
 
 #define UserStackSize		1024 	// increase this as necessary!
 
+#define ARG_MAX_LEN 32
 
-// forward declaration
 struct segment;
 typedef struct segment Segment;
 
@@ -31,7 +31,11 @@ public:
     // stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
 
-	int Initialize(OpenFile *executable);
+	// Alloc space, 
+	// leave room for arguments, at the end of va
+	int Initialize(OpenFile *executable, int argc = 0);
+
+	int InitArgs(int argc, char* argv[]);
 
     void InitRegisters();		// Initialize user-level CPU registers,
     // before jumping to user code
@@ -45,6 +49,8 @@ private:
     // for now!
     unsigned int numPages;		// Number of pages in the virtual
     // address space
+	int args_num;
+	unsigned int args_size;
 };
 
 #endif // ADDRSPACE_H

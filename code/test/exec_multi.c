@@ -8,7 +8,5 @@ int main() {
 	int x;
 	x = Exec(name, 0, 0, 0);
 	x = Exec(name, 0, 0, 0);
-	x = Exec(name, 0, 0, 0);
-	x = Exec(name, 0, 0, 0);
 	Exit(x);
 }

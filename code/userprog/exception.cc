@@ -53,6 +53,7 @@
 int copyFileName(int src_virt_addr, char *dst_phys_addr, int max_len) {
 	char c;
 	int i, v;
+	//name[FILE_NAME_MAX_LEN] = 0;
 	for (i = 0; i < max_len; i++) {
 		if (!machine->ReadMem(src_virt_addr + i, 1, &v)) {  //not 100% sure...
 			return -1;
@@ -70,48 +71,64 @@ int copyFileName(int src_virt_addr, char *dst_phys_addr, int max_len) {
 void exec_func(int args) {
 	currentThread->space->InitRegisters();
     currentThread->space->RestoreState();		// load page table register
+
+	machine->WriteRegister(4, 99);  //tmp
 	machine->Run();
 	ASSERT(FALSE);
 }
 
-SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
-	// copy name to kernel memory
+SpaceId handleExec(int name_va, int argc, char **argv, int willJoin) {
 	char name[FILE_NAME_MAX_LEN + 1];
-	name[FILE_NAME_MAX_LEN] = 0;
+	OpenFile *executable = NULL;
+	AddrSpace *space = NULL;
+	Thread *t = NULL;
+	int id;
+	
+	// copy name to kernel memory
 	if (copyFileName(name_va, name, FILE_NAME_MAX_LEN) != 0) {
 		printf("Parse Filename Error\n");
-		return 0;
+		goto err;
 	}
 	//printf("handleExec copied_name: %s\n", name);
 
-	// then exec
-	OpenFile *executable = fileSystem->Open(name);
-	AddrSpace *space;
+	// Create address space
+	executable = fileSystem->Open(name);
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", name);
-		return 0;
+		goto err;
 	}
-
 	space = new AddrSpace();
-	if (0 != space->Initialize(executable)) {
+	if (0 != space->Initialize(executable, argc)) {
 		printf("Exec, unable to init space\n");
+		goto err;
 	}
 	delete executable;
+	// copy args
+	if (0 != space->InitArgs(argc, argv)) {
+		printf("Exec, unable to init args\n");
+		goto err;
+	}
 
-	Thread *t = new Thread("exec thread");
+    // Create thread
+	t = new Thread("exec thread", willJoin);
 	printf("Exec, currentThread %d, forkedThread %d\n", (int)currentThread, (int)t);
 	t->space = space;
 
 	// Manage space Id
-	int id;
 	if (0 == (id = spaceIdTable->Alloc((void*)t))) {
-		return 0;
+		goto err;
 	}
 
 	// context switch
 	t->Fork(exec_func, (int)space);
 
 	return id;
+
+err:
+	delete executable;
+	delete space;
+	delete t;
+	return 0;
 }
 
 void handleExit(int status) {
@@ -134,6 +151,7 @@ ExceptionHandler(ExceptionType which)
         interrupt->Halt();
     } else if ((which == SyscallException) && (type == SC_Exec)) {
         printf("Syscall Exec\n");
+		printf("args %d %d %d\n", arg1, arg2, arg3);
 		int ret = handleExec(arg1, arg2, (char**)arg3, arg4);
 		machine->WriteRegister(2, ret);
     } else if ((which == SyscallException) && (type == SC_Exit)) {

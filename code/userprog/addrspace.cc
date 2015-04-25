@@ -124,11 +124,14 @@ void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
 	}
 }
 
-int AddrSpace::Initialize(OpenFile *executable) {
+int AddrSpace::Initialize(OpenFile *executable, int argc) {
 	ASSERT(memoryMgr != NULL);
 
     NoffHeader noffH;
     unsigned int i, size;
+	printf("argc %d\n", argc);
+	args_num = argc;
+	args_size = argc * (4 + ARG_MAX_LEN);
 
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
@@ -136,10 +139,10 @@ int AddrSpace::Initialize(OpenFile *executable) {
         SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
-// how big is address space?
+	// how big is address space?
+	// we need to increase the size to leave room for the stack
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-           + UserStackSize;	// we need to increase the size
-    // to leave room for the stack
+           + UserStackSize + args_size;
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
@@ -184,6 +187,11 @@ int AddrSpace::Initialize(OpenFile *executable) {
           noffH.initData.virtualAddr, noffH.initData.size);
 	loadSegment(executable, &noffH.initData, FALSE);	  
 	
+	return 0;
+}
+
+// return 0 on success
+int AddrSpace::InitArgs(int argc, char* argv[]) {
 	return 0;
 }
 
@@ -232,8 +240,8 @@ AddrSpace::InitRegisters()
     // Set the stack register to the end of the address space, where we
     // allocated the stack; but subtract off a bit, to make sure we don't
     // accidentally reference off the end!
-    machine->WriteRegister(StackReg, numPages * PageSize - 16);
-    DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
+    machine->WriteRegister(StackReg, numPages * PageSize - 16 - args_size);
+    DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16 - args_size);
 }
 
 //----------------------------------------------------------------------

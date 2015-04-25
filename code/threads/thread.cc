@@ -173,10 +173,8 @@ Thread::Finish ()
 
 	//actual finish
 	#ifdef USER_PROGRAM
-	printf("start delete space, thread %d\n", (int)currentThread);
 	delete space;  //TODO have some strange error
 	space = NULL;
-	printf("finish delete space, thread %d\n", (int)currentThread);
 	#endif
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
