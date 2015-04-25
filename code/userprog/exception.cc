@@ -93,7 +93,9 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 	}
 
 	space = new AddrSpace();
-	space->Initialize(executable);
+	if (0 != space->Initialize(executable)) {
+		printf("Exec, unable to init space\n");
+	}
 	delete executable;
 
 	Thread *t = new Thread("exec thread");

@@ -61,21 +61,6 @@ SwapHeader (NoffHeader *noffH)
 
 AddrSpace::AddrSpace()
 {
-	/*
-	if (noffH.code.size > 0) {
-        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
-              noffH.code.virtualAddr, noffH.code.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-                           noffH.code.size, noffH.code.inFileAddr);
-    }
-    if (noffH.initData.size > 0) {
-        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-              noffH.initData.virtualAddr, noffH.initData.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-                           noffH.initData.size, noffH.initData.inFileAddr);
-    }
-  */
-
 }
 
 // TODO, set readonly
@@ -84,7 +69,7 @@ void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
 	int virtPageId, physAddr, pageOffset;
 	int readSize;
 	filePos = 0;	  
-	if (TRUE) {
+	if (FALSE) {
 	if (seg->size > 0 && seg->virtualAddr % PageSize != 0) {
 		virtPageId = seg->virtualAddr / PageSize;
 		pageOffset = seg->virtualAddr % PageSize;
@@ -159,6 +144,10 @@ int AddrSpace::Initialize(OpenFile *executable) {
     size = numPages * PageSize;
 
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
+	if ((int)numPages > memoryMgr->GetFreePageNum()) {
+		printf("addrspace init, memory shortage\n");
+		return -1;
+	}
     // to run anything too big --
     // at least until we have
     // virtual memory
@@ -202,7 +191,6 @@ int AddrSpace::Initialize(OpenFile *executable) {
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!
 //----------------------------------------------------------------------
-
 AddrSpace::~AddrSpace()
 {
 	// free the memory in memoryMgr

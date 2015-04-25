@@ -39,7 +39,10 @@ StartProcess(char *filename)
         return;
     }
     space = new AddrSpace();
-	space->Initialize(executable);
+	if (0 != space->Initialize(executable)) {
+		printf("Unable to init space\n");
+		return;
+	}
     currentThread->space = space;
 
     delete executable;			// close file

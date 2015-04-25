@@ -74,10 +74,6 @@ Thread::~Thread()
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 	delete lock_join;
 	delete cv_join;
-
-#ifdef USER_PROGRAM
-	delete space;
-#endif
 }
 
 //----------------------------------------------------------------------
@@ -176,6 +172,12 @@ Thread::Finish ()
 	lock_join->Release();
 
 	//actual finish
+	#ifdef USER_PROGRAM
+	printf("start delete space, thread %d\n", (int)currentThread);
+	delete space;  //TODO have some strange error
+	space = NULL;
+	printf("finish delete space, thread %d\n", (int)currentThread);
+	#endif
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
     threadToBeDestroyed = currentThread;
