@@ -72,7 +72,6 @@ void exec_func(int args) {
 	currentThread->space->InitRegisters();
     currentThread->space->RestoreState();		// load page table register
 
-	machine->WriteRegister(4, 99);  //tmp
 	machine->Run();
 	ASSERT(FALSE);
 }
@@ -102,7 +101,6 @@ SpaceId handleExec(int name_va, int argc, char **argv, int willJoin) {
 		printf("Exec, unable to init space\n");
 		goto err;
 	}
-	delete executable;
 	// copy args
 	if (0 != space->InitArgs(argc, argv)) {
 		printf("Exec, unable to init args\n");
@@ -122,6 +120,7 @@ SpaceId handleExec(int name_va, int argc, char **argv, int willJoin) {
 	// context switch
 	t->Fork(exec_func, (int)space);
 
+	delete executable;
 	return id;
 
 err:
@@ -150,8 +149,7 @@ ExceptionHandler(ExceptionType which)
         printf("Shutdown, initiated by user program.\n");
         interrupt->Halt();
     } else if ((which == SyscallException) && (type == SC_Exec)) {
-        printf("Syscall Exec\n");
-		printf("args %d %d %d\n", arg1, arg2, arg3);
+		printf("Syscall Exec, args %d %d %d %d\n", arg1, arg2, arg3, arg4);
 		int ret = handleExec(arg1, arg2, (char**)arg3, arg4);
 		machine->WriteRegister(2, ret);
     } else if ((which == SyscallException) && (type == SC_Exit)) {

@@ -44,13 +44,24 @@ public:
     void RestoreState();		// info on a context switch
 
 private:
+	// Load segment to space
 	void loadSegment(OpenFile *executable, Segment *seg, bool readonly);
+
+	// copy the arg from virtual address from parent thread
+	// then write to the end of space
+	int InitSingleArg(int va_ptr);
+
+	// write memory of space, silimiar to machine->WriteMem
+	bool writeMem(int va, int size, int value);
+
     TranslationEntry *pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;		// Number of pages in the virtual
     // address space
 	int args_num;
 	unsigned int args_size;
+	int args_ptr_pos, args_ptr_pos_base;
+	int args_pos, args_pos_base;
 };
 
 #endif // ADDRSPACE_H

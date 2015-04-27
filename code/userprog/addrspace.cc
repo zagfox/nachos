@@ -129,9 +129,9 @@ int AddrSpace::Initialize(OpenFile *executable, int argc) {
 
     NoffHeader noffH;
     unsigned int i, size;
-	printf("argc %d\n", argc);
 	args_num = argc;
-	args_size = argc * (4 + ARG_MAX_LEN);
+	// make it multiple of 4
+	args_size = divRoundUp(argc * (4 + ARG_MAX_LEN + 1), 4) * 4;
 
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
@@ -145,6 +145,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc) {
            + UserStackSize + args_size;
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
+	args_ptr_pos_base = size - args_size;
+	args_pos_base = args_ptr_pos_base + 4 * argc;
 
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
 	if ((int)numPages > memoryMgr->GetFreePageNum()) {
@@ -186,13 +188,75 @@ int AddrSpace::Initialize(OpenFile *executable, int argc) {
     DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
           noffH.initData.virtualAddr, noffH.initData.size);
 	loadSegment(executable, &noffH.initData, FALSE);	  
-	
 	return 0;
+}
+
+int AddrSpace::InitSingleArg(int va_ptr) {
+	int i, v;
+	for (i = 0; i < ARG_MAX_LEN; i++) {
+		if (!machine->ReadMem((int)va_ptr + i, 1, &v)) {
+			return -1;
+		}
+
+		if (!writeMem(args_pos + i, 1, v)) {
+			return -1;
+		}
+		if ((v & 0xff) == 0) {
+			return 0;
+		}
+	}
+	return -1;
 }
 
 // return 0 on success
 int AddrSpace::InitArgs(int argc, char* argv[]) {
+	int i;
+	int va_ptr;
+	args_ptr_pos = args_ptr_pos_base;
+	args_pos = args_pos_base;
+
+	for (i = 0; i < argc; i++) {
+		// first, write in args_ptr_pos
+		if (!writeMem(args_ptr_pos, 4, args_pos)) {
+			return -1;
+		}
+		// then, write the actual args
+		if (!machine->ReadMem((int)argv + i * 4, 4, &va_ptr)) {
+			return -1;
+		}
+		if (0 != InitSingleArg(va_ptr)) {
+			return -1;
+		}
+		args_ptr_pos += 4;
+		args_pos += ARG_MAX_LEN + 1;
+	}
 	return 0;
+}
+
+bool AddrSpace::writeMem(int va, int size, int value) {
+	int virtPageId, pageOffset;
+	int physAddr;
+
+	virtPageId = va / PageSize;
+	pageOffset = va % PageSize;
+	if (virtPageId < 0 || virtPageId >= (int)numPages) {
+		return FALSE;
+	}
+
+	physAddr = pageTable[virtPageId].physicalPage * PageSize + pageOffset;
+
+	switch (size) {
+	case 1:
+		machine->mainMemory[physAddr] = (unsigned char) value & (0xff);
+		break;
+	case 4:
+		ASSERT(physAddr % 4 == 0);
+		*(unsigned int*) &machine->mainMemory[physAddr] = WordToMachine((unsigned int)value);
+		break;
+	default:
+		break;
+	}
+	return TRUE;
 }
 
 //----------------------------------------------------------------------
@@ -242,6 +306,10 @@ AddrSpace::InitRegisters()
     // accidentally reference off the end!
     machine->WriteRegister(StackReg, numPages * PageSize - 16 - args_size);
     DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16 - args_size);
+
+	// Init registers 4, 5
+	machine->WriteRegister(4, args_num);
+	machine->WriteRegister(5, args_ptr_pos_base);
 }
 
 //----------------------------------------------------------------------
