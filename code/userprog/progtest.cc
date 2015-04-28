@@ -14,9 +14,11 @@
 #include "addrspace.h"
 #include "synch.h"
 #include "table.h"
+#include "synch_console.h"
 
 MemoryManager *memoryMgr = NULL;
 Table *spaceIdTable = NULL;
+SynchConsole *synchConsole = NULL;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -30,6 +32,7 @@ StartProcess(char *filename)
 	// init MemoryManager in AddrSpace
 	memoryMgr = new MemoryManager(NumPhysPages);
 	spaceIdTable = new Table(256);   // a temp number
+	synchConsole = new SynchConsole();
 
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;

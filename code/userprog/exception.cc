@@ -24,6 +24,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "sys_utility.h"
 
 #define FILE_NAME_MAX_LEN 80
 
@@ -49,24 +50,6 @@
 //	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
-
-int copyFileName(int src_virt_addr, char *dst_phys_addr, int max_len) {
-	char c;
-	int i, v;
-	//name[FILE_NAME_MAX_LEN] = 0;
-	for (i = 0; i < max_len; i++) {
-		if (!machine->ReadMem(src_virt_addr + i, 1, &v)) {  //not 100% sure...
-			return -1;
-		}
-		//machine->WriteMem(dst_phys_addr + i, 1, v);
-		c = (char)v;
-		dst_phys_addr[i] = c;
-		if (c == 0) {
-			return 0;
-		}
-	}
-	return -1; // error
-}
 
 void exec_func(int args) {
 	currentThread->space->InitRegisters();
@@ -101,6 +84,7 @@ SpaceId handleExec(int name_va, int argc, char **argv, int willJoin) {
 		printf("Exec, unable to init space\n");
 		goto err;
 	}
+
 	// copy args
 	if (0 != space->InitArgs(argc, argv)) {
 		printf("Exec, unable to init args\n");
@@ -136,6 +120,16 @@ void handleExit(int status) {
 	currentThread->Finish();
 }
 
+void handleWrite(int buffer_va, int size, OpenFileId id) {
+	ASSERT(id == 1);
+
+	char *buffer = new char[size];
+	u2k_memcpy(buffer, (void*)buffer_va, size);
+	//printf("buffer %c %c\n", buffer[0], buffer[1]);
+	synchConsole->WriteConsole(buffer, size);
+	delete buffer;
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -144,17 +138,35 @@ ExceptionHandler(ExceptionType which)
     int arg2 = machine->ReadRegister(5);
     int arg3 = machine->ReadRegister(6);
     int arg4 = machine->ReadRegister(7);
+	int ret;
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-        printf("Shutdown, initiated by user program.\n");
-        interrupt->Halt();
-    } else if ((which == SyscallException) && (type == SC_Exec)) {
-		printf("Syscall Exec, args %d %d %d %d\n", arg1, arg2, arg3, arg4);
-		int ret = handleExec(arg1, arg2, (char**)arg3, arg4);
-		machine->WriteRegister(2, ret);
-    } else if ((which == SyscallException) && (type == SC_Exit)) {
-        printf("Syscall Exit, Thread %d, code %d\n", (int)currentThread, arg1);
-		handleExit(arg1);
+    if ((which == SyscallException)) {
+		switch (type) {
+		case SC_Halt:
+			printf("Shutdown, initiated by user program.\n");
+			interrupt->Halt();
+			break;
+		case SC_Exit:		
+			printf("Syscall Exit, Thread %d, code %d\n", (int)currentThread, arg1);
+			handleExit(arg1);
+			break;
+		case SC_Exec:
+			printf("Syscall Exec, args %d %d %d %d\n", arg1, arg2, arg3, arg4);
+			ret = handleExec(arg1, arg2, (char**)arg3, arg4);
+			machine->WriteRegister(2, ret);
+			break;
+		case SC_Read:
+			ASSERT(FALSE);
+			break;
+		case SC_Write:
+			printf("Syscall Write, args %d %d %d\n", arg1, arg2, arg3);
+			handleWrite(arg1, arg2, (OpenFileId)arg3);
+			break;
+		default:
+			printf("Unexpected user mode exception %d %d\n", which, type);
+			ASSERT(FALSE);
+			break;
+		}	
     } else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);

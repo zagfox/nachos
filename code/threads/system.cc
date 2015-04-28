@@ -180,6 +180,7 @@ Cleanup()
     delete machine;
 	delete memoryMgr;
 	delete spaceIdTable;
+	delete synchConsole;
 #endif
 
 #ifdef FILESYS_NEEDED
