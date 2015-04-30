@@ -120,14 +120,29 @@ void handleExit(int status) {
 	currentThread->Finish();
 }
 
-void handleWrite(int buffer_va, int size, OpenFileId id) {
+int handleWrite(int buffer_va, int size, OpenFileId id) {
 	ASSERT(id == 1);
+	int size_write;
 
 	char *buffer = new char[size];
 	u2k_memcpy(buffer, (void*)buffer_va, size);
 	//printf("buffer %c %c\n", buffer[0], buffer[1]);
-	synchConsole->WriteConsole(buffer, size);
+	size_write = synchConsole->WriteConsole(buffer, size);
+
 	delete buffer;
+	return size_write;
+}
+
+int handleRead(int buffer_va, int size, OpenFileId id) {
+	ASSERT(id == 0);
+	int size_read;
+	char *buffer = new char[size + 1];
+
+	size_read = synchConsole->ReadConsole(buffer, size);
+	k2u_memcpy((void*)buffer_va, buffer, size);
+
+	delete buffer;
+	return size_read;
 }
 
 void
@@ -156,11 +171,14 @@ ExceptionHandler(ExceptionType which)
 			machine->WriteRegister(2, ret);
 			break;
 		case SC_Read:
-			ASSERT(FALSE);
+			//printf("Syscall Read, args %d %d %d\n", arg1, arg2, arg3);
+			ret = handleRead(arg1, arg2, (OpenFileId)arg3);
+			machine->WriteRegister(2, ret);
 			break;
 		case SC_Write:
-			printf("Syscall Write, args %d %d %d\n", arg1, arg2, arg3);
-			handleWrite(arg1, arg2, (OpenFileId)arg3);
+			//printf("Syscall Write, args %d %d %d\n", arg1, arg2, arg3);
+			ret = handleWrite(arg1, arg2, (OpenFileId)arg3);
+			machine->WriteRegister(2, ret);
 			break;
 		default:
 			printf("Unexpected user mode exception %d %d\n", which, type);

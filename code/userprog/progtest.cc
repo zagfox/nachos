@@ -97,10 +97,15 @@ ConsoleTest (char *in, char *out)
     writeDone = new Semaphore("write done", 0);
 
     for (;;) {
+		printf("1\n");
         readAvail->P();		// wait for character to arrive
+		printf("2\n");
         ch = console->GetChar();
+		printf("3\n");
         console->PutChar(ch);	// echo it!
+		printf("4\n");
         writeDone->P() ;        // wait for write to finish
+		printf("5\n");
         if (ch == 'q') return;  // if q, quit
     }
 }

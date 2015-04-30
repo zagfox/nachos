@@ -9,8 +9,21 @@ public:
 	SynchConsole();
 	~SynchConsole();
 
-	void ReadConsole(char* buffer, int size);
-	void WriteConsole(char *buffer, int size);
+	// read from console to buffer, return actual bytes read
+	int ReadConsole(char* buffer, int size);
+
+	// write from buffer to console
+	int WriteConsole(char *buffer, int size);
+
+	void readAvailFunc();
+	void writeDoneFunc();
+
+private:
+	int availBytes;   // availabe bytes in console
+	Lock *lock;
+	Semaphore *writeDone;
+	Semaphore *readAvail;
+	Console *console;
 };
 
 #endif // SYNCH_CONSOLE_H
