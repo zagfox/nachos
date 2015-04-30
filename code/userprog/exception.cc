@@ -25,8 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 #include "sys_utility.h"
-
-#define FILE_NAME_MAX_LEN 80
+#include "sys_io_handler.h"
+#include "sys_thread_handler.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -50,100 +50,6 @@
 //	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
-
-void exec_func(int args) {
-	currentThread->space->InitRegisters();
-    currentThread->space->RestoreState();		// load page table register
-
-	machine->Run();
-	ASSERT(FALSE);
-}
-
-SpaceId handleExec(int name_va, int argc, char **argv, int willJoin) {
-	char name[FILE_NAME_MAX_LEN + 1];
-	OpenFile *executable = NULL;
-	AddrSpace *space = NULL;
-	Thread *t = NULL;
-	int id;
-	
-	// copy name to kernel memory
-	if (copyFileName(name_va, name, FILE_NAME_MAX_LEN) != 0) {
-		printf("Parse Filename Error\n");
-		goto err;
-	}
-	//printf("handleExec copied_name: %s\n", name);
-
-	// Create address space
-	executable = fileSystem->Open(name);
-	if (executable == NULL) {
-		printf("Unable to open file %s\n", name);
-		goto err;
-	}
-	space = new AddrSpace();
-	if (0 != space->Initialize(executable, argc)) {
-		printf("Exec, unable to init space\n");
-		goto err;
-	}
-
-	// copy args
-	if (0 != space->InitArgs(argc, argv)) {
-		printf("Exec, unable to init args\n");
-		goto err;
-	}
-
-    // Create thread
-	t = new Thread("exec thread", willJoin);
-	printf("Exec, currentThread %d, forkedThread %d\n", (int)currentThread, (int)t);
-	t->space = space;
-
-	// Manage space Id
-	if (0 == (id = spaceIdTable->Alloc((void*)t))) {
-		goto err;
-	}
-
-	// context switch
-	t->Fork(exec_func, (int)space);
-
-	delete executable;
-	return id;
-
-err:
-	delete executable;
-	delete space;
-	delete t;
-	return 0;
-}
-
-void handleExit(int status) {
-	//Todo, release spaceId table
-
-	currentThread->Finish();
-}
-
-int handleWrite(int buffer_va, int size, OpenFileId id) {
-	ASSERT(id == 1);
-	int size_write;
-
-	char *buffer = new char[size];
-	u2k_memcpy(buffer, (void*)buffer_va, size);
-	//printf("buffer %c %c\n", buffer[0], buffer[1]);
-	size_write = synchConsole->WriteConsole(buffer, size);
-
-	delete buffer;
-	return size_write;
-}
-
-int handleRead(int buffer_va, int size, OpenFileId id) {
-	ASSERT(id == 0);
-	int size_read;
-	char *buffer = new char[size + 1];
-
-	size_read = synchConsole->ReadConsole(buffer, size);
-	k2u_memcpy((void*)buffer_va, buffer, size);
-
-	delete buffer;
-	return size_read;
-}
 
 void
 ExceptionHandler(ExceptionType which)
@@ -171,12 +77,10 @@ ExceptionHandler(ExceptionType which)
 			machine->WriteRegister(2, ret);
 			break;
 		case SC_Read:
-			//printf("Syscall Read, args %d %d %d\n", arg1, arg2, arg3);
 			ret = handleRead(arg1, arg2, (OpenFileId)arg3);
 			machine->WriteRegister(2, ret);
 			break;
 		case SC_Write:
-			//printf("Syscall Write, args %d %d %d\n", arg1, arg2, arg3);
 			ret = handleWrite(arg1, arg2, (OpenFileId)arg3);
 			machine->WriteRegister(2, ret);
 			break;
@@ -185,7 +89,13 @@ ExceptionHandler(ExceptionType which)
 			ASSERT(FALSE);
 			break;
 		}	
-    } else {
+    } else if (which == AddressErrorException) {
+		printf("AddressErrorException\n");
+		handleExit(-1);
+    } else if (which == IllegalInstrException) {
+		printf("IllegalInstrException\n");
+		handleExit(-1);
+	} else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
     }

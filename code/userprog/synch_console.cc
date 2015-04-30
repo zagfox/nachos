@@ -10,15 +10,12 @@ static void synchWriteDoneFunc(int arg) {
 }
 
 SynchConsole::SynchConsole() {
-	availBytes = 0;
-	lock = new Lock("synch console lock");
 	writeDone = new Semaphore("write done", 0);
 	readAvail = new Semaphore("read avail", 0);
 	console = new Console(NULL, NULL, synchReadAvailFunc, synchWriteDoneFunc, (int)this);
 }
 
 SynchConsole::~SynchConsole() {
-	delete lock;
 	delete writeDone;
 	delete readAvail;
 	delete console;
@@ -38,8 +35,6 @@ void SynchConsole::writeDoneFunc() {
 int SynchConsole::ReadConsole(char* buffer, int size) {
 	int i;
 	char c;
-
-	//lock->Acquire();
 
 	i = 0;
 	// ensure get at least one char
@@ -63,7 +58,7 @@ int SynchConsole::ReadConsole(char* buffer, int size) {
 		buffer[i++] = c;
 		readAvail->P();
 	}
-	//lock->Release();
+
 	return i;
 }
 
@@ -71,7 +66,6 @@ int SynchConsole::WriteConsole(char *buffer, int size){
 	int i = 0;
 	char c;
 
-	//lock->Acquire();
 	for (i = 0; i < size; i++) {
 		c = buffer[i];
 		console->PutChar(c);
@@ -80,7 +74,6 @@ int SynchConsole::WriteConsole(char *buffer, int size){
 			break;
 		}*/ // Just write size bytes
 	}
-	//lock->Release();
 
 	return i;
 }

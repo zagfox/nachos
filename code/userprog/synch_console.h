@@ -19,8 +19,6 @@ public:
 	void writeDoneFunc();
 
 private:
-	int availBytes;   // availabe bytes in console
-	Lock *lock;
 	Semaphore *writeDone;
 	Semaphore *readAvail;
 	Console *console;

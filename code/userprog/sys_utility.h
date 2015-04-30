@@ -3,6 +3,8 @@
 
 #include "machine.h"
 
+#define FILE_NAME_MAX_LEN 80
+
 // copy size bytes from user space to kernel space
 // return 0 if not success
 void u2k_memcpy(void *dst, const void* src, int size) {
