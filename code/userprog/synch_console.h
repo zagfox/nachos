@@ -19,6 +19,8 @@ public:
 	void writeDoneFunc();
 
 private:
+	Lock *readLock;  // to ensure one thread read/write at a time
+	Lock *writeLock;
 	Semaphore *writeDone;
 	Semaphore *readAvail;
 	Console *console;

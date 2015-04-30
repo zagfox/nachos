@@ -40,6 +40,7 @@ Thread::Thread(char* threadName, int join)
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
+	exit_code = 0;
 #endif
 	ASSERT(join == 0 || join == 1);
 	join_need = join;
@@ -392,5 +393,13 @@ Thread::RestoreUserState()
 {
     for (int i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, userRegisters[i]);
+}
+
+void Thread::setExitCode(int code) {
+	exit_code = code;
+}
+
+int Thread::getExitCode() {
+	return exit_code;
 }
 #endif

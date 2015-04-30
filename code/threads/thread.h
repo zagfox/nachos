@@ -97,12 +97,18 @@ public:
     void Sleep();  				// Put the thread to sleep and
     // relinquish the processor
     void Finish();  				// The thread is done executing
+	// called by parent, wait child to finish
 	void Join();
 
 	void setPriority(int newPriority);
 	int  getPriority();
 	void upgradePriority(int newPriority);
 	void revertPriority();
+
+#ifdef USER_PROGRAM
+	void setExitCode(int code);
+	int getExitCode();
+#endif	
 
     void CheckOverflow();   			// Check if thread has
     // overflowed its stack
@@ -156,6 +162,9 @@ public:
     void RestoreUserState();		// restore user-level register state
 
     AddrSpace *space;			// User code this thread is running.
+
+	// exit_code
+	int exit_code;
 #endif
 };
 

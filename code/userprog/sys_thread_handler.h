@@ -4,6 +4,7 @@
 #include "system.h"
 #include "sys_utility.h"
 
+// Starter function executed by exec
 void exec_func(int args) {
 	currentThread->space->InitRegisters();
     currentThread->space->RestoreState();		// load page table register
@@ -68,9 +69,22 @@ err:
 }
 
 void handleExit(int status) {
-	//Todo, release spaceId table
+	// Release spaceId table
+	spaceIdTable->ReleaseByObj((void*)currentThread);
 
+	// Exit thread
+	currentThread->setExitCode(status);
 	currentThread->Finish();
+}
+
+int handleJoin(SpaceId id) {
+	int code = -65535;
+	Thread* child_thread = (Thread*)spaceIdTable->Get(id);
+	if (child_thread != 0) {
+		child_thread->Join();
+		code = child_thread->getExitCode();
+	}
+	return code;
 }
 
 #endif // SYS_HANDLER_H

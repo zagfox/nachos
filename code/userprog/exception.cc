@@ -76,6 +76,11 @@ ExceptionHandler(ExceptionType which)
 			ret = handleExec(arg1, arg2, (char**)arg3, arg4);
 			machine->WriteRegister(2, ret);
 			break;
+		case SC_Join:
+			printf("Syscall Join, args %d\n", arg1);
+			ret = handleJoin(arg1);
+			machine->WriteRegister(2, ret);
+			break;
 		case SC_Read:
 			ret = handleRead(arg1, arg2, (OpenFileId)arg3);
 			machine->WriteRegister(2, ret);

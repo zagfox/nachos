@@ -23,6 +23,9 @@ public:
 	/* Free the table slot at index. */
 	void Release(int index); 
 
+	// Free the table slot by obj
+	void ReleaseByObj(void *obj);
+
 private:
 	int size;
 	int *array;

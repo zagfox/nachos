@@ -10,12 +10,17 @@ static void synchWriteDoneFunc(int arg) {
 }
 
 SynchConsole::SynchConsole() {
+	readLock = new Lock("read Lock");
+	writeLock = new Lock("write Lock");
 	writeDone = new Semaphore("write done", 0);
 	readAvail = new Semaphore("read avail", 0);
 	console = new Console(NULL, NULL, synchReadAvailFunc, synchWriteDoneFunc, (int)this);
 }
 
 SynchConsole::~SynchConsole() {
+	// May have assertion false in synch
+	delete readLock;
+	delete writeLock;
 	delete writeDone;
 	delete readAvail;
 	delete console;
@@ -33,10 +38,11 @@ void SynchConsole::writeDoneFunc() {
 // At least 1 bytes, at most size bytes.
 // Return the bytes read
 int SynchConsole::ReadConsole(char* buffer, int size) {
-	int i;
+	int i = 0;
 	char c;
 
-	i = 0;
+	readLock->Acquire();
+
 	// ensure get at least one char
 	c = console->GetChar();
 	if (c == EOF) {  
@@ -59,12 +65,16 @@ int SynchConsole::ReadConsole(char* buffer, int size) {
 		readAvail->P();
 	}
 
+	readLock->Release();
+
 	return i;
 }
 
 int SynchConsole::WriteConsole(char *buffer, int size){
 	int i = 0;
 	char c;
+
+	writeLock->Acquire();
 
 	for (i = 0; i < size; i++) {
 		c = buffer[i];
@@ -74,6 +84,8 @@ int SynchConsole::WriteConsole(char *buffer, int size){
 			break;
 		}*/ // Just write size bytes
 	}
+
+	writeLock->Release();
 
 	return i;
 }
