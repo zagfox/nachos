@@ -13,7 +13,7 @@ void exec_func(int args) {
 	ASSERT(FALSE);
 }
 
-SpaceId handleExec(int name_va, int argc, char **argv, int willJoin) {
+SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 	char name[FILE_NAME_MAX_LEN + 1];
 	OpenFile *executable = NULL;
 	AddrSpace *space = NULL;
@@ -46,7 +46,8 @@ SpaceId handleExec(int name_va, int argc, char **argv, int willJoin) {
 	}
 
     // Create thread
-	t = new Thread("exec thread", willJoin);
+	t = new Thread("exec thread", opt & 0x1);
+	t->setPipeInOut(opt);
 	printf("Exec, currentThread %d, forkedThread %d\n", (int)currentThread, (int)t);
 	t->space = space;
 

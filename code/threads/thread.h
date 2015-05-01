@@ -108,6 +108,9 @@ public:
 #ifdef USER_PROGRAM
 	void setExitCode(int code);
 	int getExitCode();
+	void setPipeInOut(int opt);
+	int isPipeIn();
+	int isPipeOut();
 #endif	
 
     void CheckOverflow();   			// Check if thread has
@@ -157,14 +160,19 @@ private:
 
     int userRegisters[NumTotalRegs];	// user-level CPU register state
 
+	// exit_code
+	int exit_code;
+
+	// pipe_in_out
+	int pipe_in;
+	int pipe_out;
+
 public:
+    AddrSpace *space;			// User code this thread is running.
+
     void SaveUserState();		// save user-level register state
     void RestoreUserState();		// restore user-level register state
 
-    AddrSpace *space;			// User code this thread is running.
-
-	// exit_code
-	int exit_code;
 #endif
 };
 

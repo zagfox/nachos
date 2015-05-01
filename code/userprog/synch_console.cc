@@ -19,6 +19,7 @@ SynchConsole::SynchConsole() {
 
 SynchConsole::~SynchConsole() {
 	// May have assertion false in synch
+	// Because thread do automatic read, which holds lock
 	delete readLock;
 	delete writeLock;
 	delete writeDone;

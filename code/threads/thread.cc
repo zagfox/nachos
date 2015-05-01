@@ -41,6 +41,8 @@ Thread::Thread(char* threadName, int join)
 #ifdef USER_PROGRAM
     space = NULL;
 	exit_code = 0;
+	pipe_in = 0;
+	pipe_out = 0;
 #endif
 	ASSERT(join == 0 || join == 1);
 	join_need = join;
@@ -402,4 +404,16 @@ void Thread::setExitCode(int code) {
 int Thread::getExitCode() {
 	return exit_code;
 }
+
+void Thread::setPipeInOut(int opt) {
+	pipe_out = opt & 0x2;
+	pipe_in = opt & 0x4;
+}
+int Thread::isPipeIn() {
+	return pipe_in;
+}
+int Thread::isPipeOut() {
+	return pipe_out;
+}
+
 #endif
