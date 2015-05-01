@@ -15,10 +15,12 @@
 #include "synch.h"
 #include "table.h"
 #include "synch_console.h"
+#include "bounded_buffer.h"
 
 MemoryManager *memoryMgr = NULL;
 Table *spaceIdTable = NULL;
 SynchConsole *synchConsole = NULL;
+BoundedBuffer *pipeBuffer = NULL;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -33,6 +35,7 @@ StartProcess(char *filename)
 	memoryMgr = new MemoryManager(NumPhysPages);
 	spaceIdTable = new Table(256);   // a temp number
 	synchConsole = new SynchConsole();
+	pipeBuffer = new BoundedBuffer(256);
 
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;

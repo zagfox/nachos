@@ -181,6 +181,7 @@ Cleanup()
 	delete memoryMgr;
 	delete spaceIdTable;
 	delete synchConsole;
+	delete pipeBuffer;
 #endif
 
 #ifdef FILESYS_NEEDED

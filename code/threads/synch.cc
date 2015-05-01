@@ -119,10 +119,11 @@ void Lock::Acquire() {
 
     ASSERT(owner != currentThread); //1.1 acquire same lock twice
 
-    if (owner != NULL) {
+    while (owner != NULL) {
 		//temporary give owner a higher priority
 		owner->upgradePriority(currentThread->getPriority());
 
+		// may insert multiple times, ok, make it ready to run in Release
     	queue->SortedInsert((void*)currentThread, -currentThread->getPriority());
 		currentThread->Sleep();
     }

@@ -34,10 +34,12 @@ extern Timer *timer;				// the hardware alarm clock
 #include "memory_manager.h"
 #include "table.h"
 #include "synch_console.h"
+#include "bounded_buffer.h"
 extern Machine* machine;	// user program memory and registers
 extern MemoryManager *memoryMgr;  // Todo, make it static in addrSpace
 extern Table* spaceIdTable;
 extern SynchConsole* synchConsole;
+extern BoundedBuffer* pipeBuffer;
 #endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 

@@ -12,7 +12,11 @@ int handleWrite(int buffer_va, int size, OpenFileId id) {
 	char *buffer = new char[size];
 	u2k_memcpy(buffer, (void*)buffer_va, size);
 	//printf("buffer %c %c\n", buffer[0], buffer[1]);
-	size_write = synchConsole->WriteConsole(buffer, size);
+	if (currentThread->isPipeOut()) {
+		size_write = pipeBuffer->Write(buffer, size);
+	} else {
+		size_write = synchConsole->WriteConsole(buffer, size);
+	}
 
 	delete buffer;
 	return size_write;
@@ -23,7 +27,11 @@ int handleRead(int buffer_va, int size, OpenFileId id) {
 	int size_read;
 	char *buffer = new char[size + 1];
 
-	size_read = synchConsole->ReadConsole(buffer, size);
+	if (currentThread->isPipeIn()) {
+		size_read = pipeBuffer->Read(buffer, size);
+	} else {
+		size_read = synchConsole->ReadConsole(buffer, size);
+	}
 	k2u_memcpy((void*)buffer_va, buffer, size);
 
 	delete buffer;
