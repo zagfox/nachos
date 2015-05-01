@@ -47,7 +47,6 @@ int BoundedBuffer::Read(char* buffer, int read_size) {
 int BoundedBuffer::Write(char* buffer, int write_size) {
 	int i;
 	writeLock->Acquire();
-	printf("bb write thread 1 %d\n", (int)currentThread);
 
 	for (i = 0; i < write_size; i++) {
 		writeAvail->P();
@@ -56,7 +55,6 @@ int BoundedBuffer::Write(char* buffer, int write_size) {
 		readAvail->V();
 	}
 
-	printf("bb write thread 2 %d\n", (int)currentThread);
 	writeLock->Release();
 
 	return i;

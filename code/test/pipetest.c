@@ -14,5 +14,5 @@ main()
     Exec("./test/produce", 0, 0, 2);
     Exec("./test/produce", 0, 0, 2);
     Exec("./test/consume", 0, 0, 4);
-    //Exec("./test/consume", 0, 0, 4);
+    Exec("./test/consume", 0, 0, 4);
 }
