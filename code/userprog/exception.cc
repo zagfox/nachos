@@ -89,6 +89,14 @@ ExceptionHandler(ExceptionType which)
 			ret = handleWrite(arg1, arg2, (OpenFileId)arg3);
 			machine->WriteRegister(2, ret);
 			break;
+		case SC_Fork:
+			printf("Syscall Fork, args %d\n", arg1);
+			handleFork((VoidNoArgFunctionPtr)arg1);
+			break;
+		case SC_Yield:
+			printf("Syscall Yield\n");
+			handleYield();
+			break;
 		default:
 			printf("Unexpected user mode exception %d %d\n", which, type);
 			ASSERT(FALSE);

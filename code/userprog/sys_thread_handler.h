@@ -48,7 +48,7 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
     // Create thread
 	t = new Thread("exec thread", opt & 0x1);
 	t->setPipeInOut(opt);
-	printf("Exec, currentThread %d, forkedThread %d\n", (int)currentThread, (int)t);
+	printf("Exec, currentThread %d, user exec Thread %d\n", (int)currentThread, (int)t);
 	t->space = space;
 
 	// Manage space Id
@@ -57,7 +57,7 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 	}
 
 	// context switch
-	t->Fork(exec_func, (int)space);
+	t->Fork(exec_func, 0);
 
 	delete executable;
 	return id;
@@ -69,6 +69,7 @@ err:
 	return 0;
 }
 
+// TODO:Need Change if multi-user thread are enabled
 void handleExit(int status) {
 	// Release spaceId table
 	spaceIdTable->ReleaseByObj((void*)currentThread);
@@ -86,6 +87,32 @@ int handleJoin(SpaceId id) {
 		code = child_thread->getExitCode();
 	}
 	return code;
+}
+
+/*
+void fork_func(int arg) {
+	VoidNoArgFunctionPtr func = (VoidNoArgFunctionPtr)arg;
+	func();
+	// Finish?
+}*/
+
+void handleFork(void (*func)()) {
+	Thread *t = NULL;
+
+	t = new Thread("forked thread", 0);
+	printf("Exec, currentThread %d, user forked Thread %d\n", (int)currentThread, (int)t);
+	t->space = currentThread->space;
+
+	// SpaceId??
+
+	// fork
+	//t->Fork(fork_func, (int)func);
+	//t->Fork((VoidFunctionPtr)func, 0);
+
+
+}
+
+void handleYield() {
 }
 
 #endif // SYS_HANDLER_H

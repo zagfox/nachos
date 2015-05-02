@@ -128,8 +128,7 @@ public:
 private:
     // some of the private data for this class is listed above
 
-	//join related
-	// join can only start when join_ok is 0
+	// join related, join can only start when join_ok is 0
 	// real finish(delete tcb) can only start when join_complete is 1
 	int join_need;       //if need to do join
 	int join_ready;	     // if ok to do join, 0 not, 1 is ready

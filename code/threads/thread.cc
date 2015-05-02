@@ -175,9 +175,10 @@ Thread::Finish ()
 	lock_join->Release();
 
 	//actual finish
+	// TODO: delete it only when all multi-thread ends
 	#ifdef USER_PROGRAM
-	delete space;  //TODO have some strange error
-	space = NULL;
+	//delete space;  
+	//space = NULL;
 	#endif
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
