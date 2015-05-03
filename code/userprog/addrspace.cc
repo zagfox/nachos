@@ -61,6 +61,7 @@ SwapHeader (NoffHeader *noffH)
 
 AddrSpace::AddrSpace()
 {
+	numThreads = 0;
 }
 
 void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
@@ -252,7 +253,6 @@ void
 AddrSpace::InitRegisters()
 {
     int i;
-
     for (i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, 0);
 
@@ -275,6 +275,11 @@ AddrSpace::InitRegisters()
 }
 
 void AddrSpace::InitFork(int func) {
+	// Split stack for multiple threads
+	int stackTop = numPages * PageSize - 16 - args_size - UserStackSize;
+	int newstackPos = stackTop + (UserStackSize / numThreads);
+	ASSERT(machine->ReadRegister(StackReg) > newstackPos);
+
 	int i;
     for (i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, 0);
@@ -282,8 +287,8 @@ void AddrSpace::InitFork(int func) {
     machine->WriteRegister(PCReg, func);
     machine->WriteRegister(NextPCReg, func + 4);
 
-	// Hardcoded half point for stack register
-    machine->WriteRegister(StackReg, numPages * PageSize - 16 - args_size - (UserStackSize/2));
+	// set stack register
+    machine->WriteRegister(StackReg, newstackPos);
     DEBUG('a', "Initializing stack register to %d\n", machine->ReadRegister(StackReg));
 
 }

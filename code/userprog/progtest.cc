@@ -49,9 +49,12 @@ StartProcess(char *filename)
 		printf("Unable to init space\n");
 		return;
 	}
-    currentThread->space = space;
+    currentThread->setSpace(space);
 
     delete executable;			// close file
+
+	int id = spaceIdTable->Alloc((void*)currentThread);
+	currentThread->setSpaceId(id);
 
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
@@ -60,9 +63,6 @@ StartProcess(char *filename)
     ASSERT(FALSE);			// machine->Run never returns;
     // the address space exits
     // by doing the syscall "exit"
-
-	// may not reach, but need to do this
-	delete memoryMgr;
 }
 
 // Data structures needed for the console test.  Threads making

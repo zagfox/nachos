@@ -106,6 +106,9 @@ public:
 	void revertPriority();
 
 #ifdef USER_PROGRAM
+	void setSpace(AddrSpace* _space);
+	void setSpaceId(int id) { spaceId = id; }
+	int getSpaceId() { return spaceId; }
 	void setExitCode(int code);
 	int getExitCode();
 	void setPipeInOut(int opt);
@@ -158,6 +161,8 @@ private:
 // while executing kernel code.
 
     int userRegisters[NumTotalRegs];	// user-level CPU register state
+
+	int spaceId;
 
 	// exit_code
 	int exit_code;

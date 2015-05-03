@@ -49,12 +49,13 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 	t = new Thread("exec thread", opt & 0x1);
 	t->setPipeInOut(opt);
 	printf("Exec, currentThread %d, user exec Thread %d\n", (int)currentThread, (int)t);
-	t->space = space;
+	t->setSpace(space);
 
 	// Manage space Id
 	if (0 == (id = spaceIdTable->Alloc((void*)t))) {
 		goto err;
 	}
+	t->setSpaceId(id);
 
 	// context switch
 	t->Fork(exec_func, 0);
@@ -69,10 +70,10 @@ err:
 	return 0;
 }
 
-// TODO:Need Change if multi-user thread are enabled
+// if multi-user thread are enabled, just exit one thread
 void handleExit(int status) {
 	// Release spaceId table
-	spaceIdTable->ReleaseByObj((void*)currentThread);
+	spaceIdTable->Release(currentThread->getSpaceId());
 
 	// Exit thread
 	currentThread->setExitCode(status);
@@ -102,7 +103,7 @@ void handleFork(void (*func)()) {
 
 	t = new Thread("forked thread", 0);
 	printf("Exec, currentThread %d, user forked Thread %d\n", (int)currentThread, (int)t);
-	t->space = currentThread->space;
+	t->setSpace(currentThread->space);
 
 	// SpaceId??
 

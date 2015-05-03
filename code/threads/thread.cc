@@ -40,6 +40,7 @@ Thread::Thread(char* threadName, int join)
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
+	spaceId = 0;
 	exit_code = 0;
 	pipe_in = 0;
 	pipe_out = 0;
@@ -104,7 +105,7 @@ Thread::Fork(VoidFunctionPtr func, int arg)
 {
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
           name, (int) func, arg);
-
+	
     StackAllocate(func, arg);
 
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
@@ -177,8 +178,10 @@ Thread::Finish ()
 	//actual finish
 	// TODO: delete it only when all multi-thread ends
 	#ifdef USER_PROGRAM
-	//delete space;  
-	//space = NULL;
+	if (space != NULL && space->DecNumThread() == 0) {
+		delete space;  
+		space = NULL;
+	}
 	#endif
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
@@ -396,6 +399,12 @@ Thread::RestoreUserState()
 {
     for (int i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, userRegisters[i]);
+}
+
+void Thread::setSpace(AddrSpace* _space) {
+	ASSERT(space == NULL && _space != NULL);
+	space = _space;
+	space->IncNumThread();
 }
 
 void Thread::setExitCode(int code) {

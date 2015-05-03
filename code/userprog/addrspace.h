@@ -41,6 +41,8 @@ public:
     // before jumping to user code
 
 	void InitFork(int func);   // Init when forking user thread
+	int IncNumThread() { return (++numThreads); }
+	int DecNumThread() { return (--numThreads); }
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
@@ -64,6 +66,8 @@ private:
 	unsigned int args_size;
 	int args_ptr_pos, args_ptr_pos_base;
 	int args_pos, args_pos_base;
+
+	int numThreads;   // Number of threads running in the addrspace
 };
 
 #endif // ADDRSPACE_H

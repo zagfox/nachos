@@ -40,14 +40,3 @@ void Table::Release(int _index) {
 	lock->Release();
 }
 
-void Table::ReleaseByObj(void *obj) {
-	int i;
-	lock->Acquire();
-	for (i = 0; i < size; i++) {
-		if (array[i] == (int)obj) {
-			array[i] = 0;
-			break;
-		}
-	}
-	lock->Release();
-}
