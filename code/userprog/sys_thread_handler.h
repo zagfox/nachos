@@ -89,12 +89,13 @@ int handleJoin(SpaceId id) {
 	return code;
 }
 
-/*
 void fork_func(int arg) {
-	VoidNoArgFunctionPtr func = (VoidNoArgFunctionPtr)arg;
-	func();
-	// Finish?
-}*/
+	currentThread->space->InitFork(arg);
+    currentThread->space->RestoreState();	
+
+	machine->Run();
+	ASSERT(FALSE);
+}
 
 void handleFork(void (*func)()) {
 	Thread *t = NULL;
@@ -106,13 +107,11 @@ void handleFork(void (*func)()) {
 	// SpaceId??
 
 	// fork
-	//t->Fork(fork_func, (int)func);
-	//t->Fork((VoidFunctionPtr)func, 0);
-
-
+	t->Fork(fork_func, (int)func);
 }
 
 void handleYield() {
+	currentThread->Yield();
 }
 
 #endif // SYS_HANDLER_H

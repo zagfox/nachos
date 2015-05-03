@@ -63,48 +63,11 @@ AddrSpace::AddrSpace()
 {
 }
 
-// TODO, set readonly
 void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
 	int filePos, fileAddr;
 	int virtPageId, physAddr, pageOffset;
 	int readSize;
-	filePos = 0;	  
-	if (FALSE) {
-	if (seg->size > 0 && seg->virtualAddr % PageSize != 0) {
-		virtPageId = seg->virtualAddr / PageSize;
-		pageOffset = seg->virtualAddr % PageSize;
-		readSize = PageSize - pageOffset;
-		physAddr = pageTable[virtPageId].physicalPage * PageSize + pageOffset;
-		fileAddr = seg->inFileAddr;
 
-		executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
-		filePos += readSize;
-	}
-	while (filePos <= seg->size - PageSize) {
-		virtPageId = (seg->virtualAddr + filePos) / PageSize;
-		readSize = PageSize;
-		physAddr = pageTable[virtPageId].physicalPage * PageSize;
-		fileAddr = seg->inFileAddr + filePos;
-
-		if (readonly) {
-			pageTable[virtPageId].readOnly = TRUE;
-		}
-		executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
-		filePos += readSize;
-
-
-	}
-	if (seg->size > 0 && filePos < seg->size) {
-		virtPageId = (seg->virtualAddr + filePos) / PageSize;
-		readSize = (seg->size - filePos);
-		physAddr = pageTable[virtPageId].physicalPage * PageSize;
-		fileAddr = seg->inFileAddr + filePos;
-
-		executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
-		filePos += readSize;
-	}
-	} else {
-	// try to combine together
 	for (filePos = 0; filePos < seg->size;) {
 		virtPageId = (seg->virtualAddr + filePos) / PageSize;
 		pageOffset = (seg->virtualAddr + filePos) % PageSize;
@@ -120,7 +83,6 @@ void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
 		}
 		executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
 		filePos += readSize;
-	}
 	}
 }
 
@@ -307,9 +269,23 @@ AddrSpace::InitRegisters()
     machine->WriteRegister(StackReg, numPages * PageSize - 16 - args_size);
     DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16 - args_size);
 
-	// Init registers 4, 5
+	// Init registers 4, 5, they are arguments
 	machine->WriteRegister(4, args_num);
 	machine->WriteRegister(5, args_ptr_pos_base);
+}
+
+void AddrSpace::InitFork(int func) {
+	int i;
+    for (i = 0; i < NumTotalRegs; i++)
+        machine->WriteRegister(i, 0);
+
+    machine->WriteRegister(PCReg, func);
+    machine->WriteRegister(NextPCReg, func + 4);
+
+	// Hardcoded half point for stack register
+    machine->WriteRegister(StackReg, numPages * PageSize - 16 - args_size - (UserStackSize/2));
+    DEBUG('a', "Initializing stack register to %d\n", machine->ReadRegister(StackReg));
+
 }
 
 //----------------------------------------------------------------------
