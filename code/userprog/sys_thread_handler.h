@@ -60,7 +60,7 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 	// context switch
 	t->Fork(exec_func, 0);
 
-	delete executable;
+	//delete executable;
 	return id;
 
 err:

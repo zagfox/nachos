@@ -51,7 +51,7 @@ StartProcess(char *filename)
 	}
     currentThread->setSpace(space);
 
-    delete executable;			// close file
+    //delete executable;			// close file
 
 	int id = spaceIdTable->Alloc((void*)currentThread);
 	currentThread->setSpaceId(id);

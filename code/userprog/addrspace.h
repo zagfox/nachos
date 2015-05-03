@@ -33,7 +33,7 @@ public:
 
 	// Alloc space, 
 	// leave room for arguments, at the end of va
-	int Initialize(OpenFile *executable, int argc = 0);
+	int Initialize(OpenFile *_executable, int argc = 0);
 
 	int InitArgs(int argc, char* argv[]);
 
@@ -44,12 +44,15 @@ public:
 	int IncNumThread() { return (++numThreads); }
 	int DecNumThread() { return (--numThreads); }
 
+	// change pageTable
+	void PageIn(int pageId);
+
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
 
 private:
 	// Load segment to space
-	void loadSegment(OpenFile *executable, Segment *seg, bool readonly);
+	void loadSegment(Segment *seg, bool readonly);
 
 	// copy the arg from virtual address from parent thread
 	// then write to the end of space
@@ -58,6 +61,8 @@ private:
 	// write memory of space, silimiar to machine->WriteMem
 	bool writeMem(int va, int size, int value);
 
+	
+	OpenFile *executable;
     TranslationEntry *pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;		// Number of pages in the virtual

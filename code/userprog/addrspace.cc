@@ -61,10 +61,11 @@ SwapHeader (NoffHeader *noffH)
 
 AddrSpace::AddrSpace()
 {
+	executable = NULL;
 	numThreads = 0;
 }
 
-void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
+void AddrSpace::loadSegment(Segment *seg, bool readonly) {
 	int filePos, fileAddr;
 	int virtPageId, physAddr, pageOffset;
 	int readSize;
@@ -87,9 +88,14 @@ void AddrSpace::loadSegment(OpenFile *executable, Segment *seg, bool readonly) {
 	}
 }
 
-int AddrSpace::Initialize(OpenFile *executable, int argc) {
+void AddrSpace::PageIn(int pageId) {
+	pageTable[pageId].valid = TRUE;
+}
+
+int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 	ASSERT(memoryMgr != NULL);
 
+	executable = _executable;
     NoffHeader noffH;
     unsigned int i, size;
 	args_num = argc;
@@ -127,7 +133,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc) {
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;	
         pageTable[i].physicalPage = memoryMgr->AllocPage();
-        pageTable[i].valid = TRUE;
+        //pageTable[i].valid = TRUE;
+        pageTable[i].valid = FALSE;
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
         pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
@@ -146,11 +153,11 @@ int AddrSpace::Initialize(OpenFile *executable, int argc) {
 // then, copy in the code and data segments into memory
     DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
           noffH.code.virtualAddr, noffH.code.size);
-	loadSegment(executable, &noffH.code, TRUE);	  
+	loadSegment(&noffH.code, TRUE);	  
 
     DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
           noffH.initData.virtualAddr, noffH.initData.size);
-	loadSegment(executable, &noffH.initData, FALSE);	  
+	loadSegment(&noffH.initData, FALSE);	  
 	return 0;
 }
 
@@ -237,6 +244,7 @@ AddrSpace::~AddrSpace()
 	}
 
     delete [] pageTable;
+	delete executable;
 }
 
 //----------------------------------------------------------------------

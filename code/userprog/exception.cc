@@ -51,6 +51,10 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+void handlePageFault(int pageId) {
+	currentThread->space->PageIn(pageId);
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -102,22 +106,27 @@ ExceptionHandler(ExceptionType which)
 			ASSERT(FALSE);
 			break;
 		}	
+
+		// Inc PC only in Syscall
+		int PC, nextPC;
+		PC = machine->ReadRegister(PCReg);
+		nextPC = machine->ReadRegister(NextPCReg);
+		machine->WriteRegister(PrevPCReg, PC);
+		machine->WriteRegister(PCReg, nextPC);
+		machine->WriteRegister(NextPCReg, nextPC + 4);
+
     } else if (which == AddressErrorException) {
 		printf("AddressErrorException\n");
 		handleExit(-1);
     } else if (which == IllegalInstrException) {
 		printf("IllegalInstrException\n");
 		handleExit(-1);
+	} else if (which == PageFaultException) {
+		int vAddr = machine->ReadRegister(BadVAddrReg);
+		printf("page fault, vAddr %d\n", vAddr);
+		handlePageFault(vAddr / PageSize);
 	} else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
     }
-
-	// Inc PC
-	int PC, nextPC;
-	PC = machine->ReadRegister(PCReg);
-	nextPC = machine->ReadRegister(NextPCReg);
-	machine->WriteRegister(PrevPCReg, PC);
-	machine->WriteRegister(PCReg, nextPC);
-	machine->WriteRegister(NextPCReg, nextPC + 4);
 }
