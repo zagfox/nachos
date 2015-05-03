@@ -16,13 +16,11 @@
 #include "copyright.h"
 #include "filesys.h"
 #include "memory_manager.h"
+#include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
 
 #define ARG_MAX_LEN 32
-
-struct segment;
-typedef struct segment Segment;
 
 class AddrSpace {
 public:
@@ -53,6 +51,7 @@ public:
 private:
 	// Load segment to space
 	void loadSegment(Segment *seg, bool readonly);
+	void loadSegmentToPage(Segment *seg, bool readonly, int pageId);
 
 	// copy the arg from virtual address from parent thread
 	// then write to the end of space
@@ -61,8 +60,10 @@ private:
 	// write memory of space, silimiar to machine->WriteMem
 	bool writeMem(int va, int size, int value);
 
-	
+	// virtual memory related
 	OpenFile *executable;
+	NoffHeader *noffH;
+
     TranslationEntry *pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;		// Number of pages in the virtual

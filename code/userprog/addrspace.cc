@@ -18,7 +18,6 @@
 #include "copyright.h"
 #include "system.h"
 #include "addrspace.h"
-#include "noff.h"
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
@@ -62,6 +61,7 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace()
 {
 	executable = NULL;
+	noffH = NULL;
 	numThreads = 0;
 }
 
@@ -88,7 +88,43 @@ void AddrSpace::loadSegment(Segment *seg, bool readonly) {
 	}
 }
 
+void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
+	int segStart = seg->virtualAddr;
+	int segEnd = seg->virtualAddr + seg->size;
+	int pageStart = pageId * PageSize;
+	int pageEnd = (pageId + 1) * PageSize;
+
+	int readStart, readEnd, readSize;
+	int physAddr, fileAddr;
+
+	if (segStart >= pageEnd || segEnd < pageStart) 
+		return;
+
+	readStart = max(segStart, pageStart);
+	readEnd = min(segEnd, pageEnd);
+	readSize = readEnd - readStart;
+
+	physAddr = pageTable[pageId].physicalPage * PageSize + (readStart % PageSize);
+	fileAddr = noffH->code.inFileAddr + readStart;   // offset of codeseg
+
+	//readonly
+	if ((readSize == PageSize) && readonly) {
+		pageTable[pageId].readOnly = TRUE;
+	}
+
+	executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
+}
+
 void AddrSpace::PageIn(int pageId) {
+	// zero the page
+	char *ptr = &(machine->mainMemory[pageTable[pageId].physicalPage * PageSize]);
+	bzero((void*)ptr, PageSize);
+
+	// Load data
+	loadSegmentToPage(&noffH->code, TRUE, pageId);
+	loadSegmentToPage(&noffH->initData, FALSE, pageId);
+
+	// mark in pageTable
 	pageTable[pageId].valid = TRUE;
 }
 
@@ -96,21 +132,21 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 	ASSERT(memoryMgr != NULL);
 
 	executable = _executable;
-    NoffHeader noffH;
+    noffH = new NoffHeader;
     unsigned int i, size;
 	args_num = argc;
 	// make it multiple of 4
 	args_size = divRoundUp(argc * (4 + ARG_MAX_LEN + 1), 4) * 4;
 
-    executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
-    if ((noffH.noffMagic != NOFFMAGIC) &&
-            (WordToHost(noffH.noffMagic) == NOFFMAGIC))
-        SwapHeader(&noffH);
-    ASSERT(noffH.noffMagic == NOFFMAGIC);
+    executable->ReadAt((char *)noffH, sizeof(NoffHeader), 0);
+    if ((noffH->noffMagic != NOFFMAGIC) &&
+            (WordToHost(noffH->noffMagic) == NOFFMAGIC))
+        SwapHeader(noffH);
+    ASSERT(noffH->noffMagic == NOFFMAGIC);
 
 	// how big is address space?
 	// we need to increase the size to leave room for the stack
-    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+    size = noffH->code.size + noffH->initData.size + noffH->uninitData.size
            + UserStackSize + args_size;
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
@@ -118,13 +154,13 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 	args_pos_base = args_ptr_pos_base + 4 * argc;
 
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
+    // to run anything too big --
+    // at least until we have
+    // virtual memory
 	if ((int)numPages > memoryMgr->GetFreePageNum()) {
 		printf("addrspace init, memory shortage\n");
 		return -1;
 	}
-    // to run anything too big --
-    // at least until we have
-    // virtual memory
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
           numPages, size);
@@ -142,6 +178,7 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
         // pages to be read-only
     }
 
+/*
 // zero out the entire address space, to zero the unitialized data segment
 // and the stack segment
 	char *ptr;
@@ -152,12 +189,13 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 
 // then, copy in the code and data segments into memory
     DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
-          noffH.code.virtualAddr, noffH.code.size);
-	loadSegment(&noffH.code, TRUE);	  
+          noffH->code.virtualAddr, noffH->code.size);
+	//loadSegment(&noffH->code, TRUE);	  
 
     DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-          noffH.initData.virtualAddr, noffH.initData.size);
-	loadSegment(&noffH.initData, FALSE);	  
+          noffH->initData.virtualAddr, noffH->initData.size);
+	//loadSegment(&noffH->initData, FALSE);	  
+	*/
 	return 0;
 }
 
@@ -245,6 +283,7 @@ AddrSpace::~AddrSpace()
 
     delete [] pageTable;
 	delete executable;
+	delete noffH;
 }
 
 //----------------------------------------------------------------------
