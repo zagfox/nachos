@@ -117,13 +117,22 @@ void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 }
 
 void AddrSpace::PageIn(int pageId) {
-	// zero the page
-	char *ptr = &(machine->mainMemory[pageTable[pageId].physicalPage * PageSize]);
-	bzero((void*)ptr, PageSize);
+	pageTable[pageId].physicalPage = memoryMgr->AllocPage();
 
-	// Load data
-	loadSegmentToPage(&noffH->code, TRUE, pageId);
-	loadSegmentToPage(&noffH->initData, FALSE, pageId);
+	if (pageTableInit[pageId] == 0) {
+		// zero the page
+		char *ptr = &(machine->mainMemory[pageTable[pageId].physicalPage * PageSize]);
+		bzero((void*)ptr, PageSize);
+
+		// Load data
+		loadSegmentToPage(&noffH->code, TRUE, pageId);
+		loadSegmentToPage(&noffH->initData, FALSE, pageId);
+
+		// mark page as initialized
+		pageTableInit[pageId] = 1;
+	} else {
+		// load from file
+	}
 
 	// mark in pageTable
 	pageTable[pageId].valid = TRUE;
@@ -167,9 +176,11 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
           numPages, size);
 // first, set up the translation
     pageTable = new TranslationEntry[numPages];
+	pageTableInit = new int[numPages];
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;	
-        pageTable[i].physicalPage = memoryMgr->AllocPage();
+        //pageTable[i].physicalPage = memoryMgr->AllocPage();
+        pageTable[i].physicalPage = -1;
         //pageTable[i].valid = TRUE;
         pageTable[i].valid = FALSE;
         pageTable[i].use = FALSE;
@@ -177,6 +188,8 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
         pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
         // a separate page, we could set its
         // pages to be read-only
+
+		pageTableInit[i] = 0;
     }
 
 /*
@@ -254,6 +267,7 @@ bool AddrSpace::writeMem(int va, int size, int value) {
 
 	if (pageTable[virtPageId].valid == FALSE) {
 		// should page in  // TODO
+		ASSERT(FALSE); // solve later
 	}
 
 	physAddr = pageTable[virtPageId].physicalPage * PageSize + pageOffset;
@@ -287,6 +301,7 @@ AddrSpace::~AddrSpace()
 	}
 
     delete [] pageTable;
+	delete []pageTableInit;
 	delete executable;
 	delete noffH;
 }

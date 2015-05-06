@@ -64,8 +64,8 @@ private:
 	OpenFile *executable;
 	NoffHeader *noffH;
 
-    TranslationEntry *pageTable;	// Assume linear page table translation
-    // for now!
+    TranslationEntry *pageTable;	
+	int *pageTableInit;
     unsigned int numPages;		// Number of pages in the virtual
     // address space
 	int args_num;
