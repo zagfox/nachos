@@ -21,6 +21,7 @@
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
+#include "sys_utility.h"
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -105,9 +106,9 @@ void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 	readSize = readEnd - readStart;
 
 	physAddr = pageTable[pageId].physicalPage * PageSize + (readStart % PageSize);
-	fileAddr = noffH->code.inFileAddr + readStart;   // offset of codeseg
+	fileAddr = noffH->code.inFileAddr + readStart;   // always offset of code seg
 
-	//readonly
+	// set readonly
 	if ((readSize == PageSize) && readonly) {
 		pageTable[pageId].readOnly = TRUE;
 	}
@@ -202,7 +203,7 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 int AddrSpace::InitSingleArg(int va_ptr) {
 	int i, v;
 	for (i = 0; i < ARG_MAX_LEN; i++) {
-		if (!machine->ReadMem((int)va_ptr + i, 1, &v)) {
+		if (!machineReadMem((int)va_ptr + i, 1, &v)) {
 			return -1;
 		}
 
@@ -229,7 +230,7 @@ int AddrSpace::InitArgs(int argc, char* argv[]) {
 			return -1;
 		}
 		// then, write the actual args
-		if (!machine->ReadMem((int)argv + i * 4, 4, &va_ptr)) {
+		if (!machineReadMem((int)argv + i * 4, 4, &va_ptr)) {
 			return -1;
 		}
 		if (0 != InitSingleArg(va_ptr)) {
@@ -247,8 +248,12 @@ bool AddrSpace::writeMem(int va, int size, int value) {
 
 	virtPageId = va / PageSize;
 	pageOffset = va % PageSize;
-	if (virtPageId < 0 || virtPageId >= (int)numPages) {
+	if (virtPageId < 0 || virtPageId >= (int)numPages) {  //TODO, maynot need it
 		return FALSE;
+	}
+
+	if (pageTable[virtPageId].valid == FALSE) {
+		// should page in  // TODO
 	}
 
 	physAddr = pageTable[virtPageId].physicalPage * PageSize + pageOffset;

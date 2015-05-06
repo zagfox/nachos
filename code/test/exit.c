@@ -3,7 +3,6 @@
 #include "syscall.h"
 
 int main() {
-
 	//Halt();
 	/*int x;
 	x = 1;

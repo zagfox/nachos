@@ -25,7 +25,7 @@ SpaceId handleExec(int name_va, int argc, char **argv, int opt) {
 		printf("Parse Filename Error\n");
 		goto err;
 	}
-	//printf("handleExec copied_name: %s\n", name);
+	printf("handleExec copied_name: %s\n", name);
 
 	// Create address space
 	executable = fileSystem->Open(name);
