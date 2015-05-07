@@ -63,6 +63,7 @@ AddrSpace::AddrSpace()
 {
 	executable = NULL;
 	noffH = NULL;
+	store = new BackingStore();
 	numThreads = 0;
 }
 
@@ -117,9 +118,29 @@ void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 }
 
 void AddrSpace::PageIn(int pageId) {
+	// if full, evict a page
+	if (memoryMgr->GetFreePageNum() == 0) {
+		int evictPageId = 10; // virtual page to be evicted, now always evict page number smallest
+		while (evictPageId < numPages && pageTable[evictPageId].valid == FALSE) {
+			evictPageId++;
+			//evictPageId = rand() % numPages;
+		}
+		printf("page out vid %d\n", evictPageId);
+
+		if (pageTable[evictPageId].dirty == TRUE) {
+			store->PageOut(&pageTable[evictPageId]);
+		}
+		memoryMgr->FreePage(pageTable[evictPageId].physicalPage);   //free the physical page
+		pageTable[evictPageId].valid = FALSE;
+		pageTable[evictPageId].use = FALSE;
+		pageTable[evictPageId].dirty = FALSE;
+		pageTable[evictPageId].physicalPage = -1;
+	}
+	// then alloc physical page
 	pageTable[pageId].physicalPage = memoryMgr->AllocPage();
 
 	if (pageTableInit[pageId] == 0) {
+		printf("page in first time id %d\n", pageId);
 		// zero the page
 		char *ptr = &(machine->mainMemory[pageTable[pageId].physicalPage * PageSize]);
 		bzero((void*)ptr, PageSize);
@@ -131,7 +152,9 @@ void AddrSpace::PageIn(int pageId) {
 		// mark page as initialized
 		pageTableInit[pageId] = 1;
 	} else {
-		// load from file
+		// then load from file
+		printf("page in from file id %d\n", pageId);
+		store->PageIn(&pageTable[pageId]);
 	}
 
 	// mark in pageTable
@@ -163,17 +186,18 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 	args_ptr_pos_base = size - args_size;
 	args_pos_base = args_ptr_pos_base + 4 * argc;
 
-    ASSERT(numPages <= NumPhysPages);		// check we're not trying
+    //ASSERT(numPages <= NumPhysPages);		// check we're not trying
     // to run anything too big --
     // at least until we have
     // virtual memory
-	if ((int)numPages > memoryMgr->GetFreePageNum()) {
+	/*if ((int)numPages > memoryMgr->GetFreePageNum()) {
 		printf("addrspace init, memory shortage\n");
 		return -1;
-	}
+	}*/
 
-    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
-          numPages, size);
+    DEBUG('a', "Initializing address space, num pages %d, size %d\n", numPages, size);
+    DEBUG('a', "code size %d, initData size %d, uninitData size %d\n", 
+		noffH->code.size, noffH->initData.size, noffH->uninitData.size);
 // first, set up the translation
     pageTable = new TranslationEntry[numPages];
 	pageTableInit = new int[numPages];
@@ -192,24 +216,11 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 		pageTableInit[i] = 0;
     }
 
-/*
-// zero out the entire address space, to zero the unitialized data segment
-// and the stack segment
-	char *ptr;
-	for (i = 0; i < numPages; i++) {
-		ptr = &(machine->mainMemory[pageTable[i].physicalPage * PageSize]);
-		bzero((void*)ptr, PageSize);
+	// At it very last, init backing store
+	if (0 != store->Initialize(this, numPages * PageSize)) {
+		return -1;
 	}
 
-// then, copy in the code and data segments into memory
-    DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
-          noffH->code.virtualAddr, noffH->code.size);
-	//loadSegment(&noffH->code, TRUE);	  
-
-    DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-          noffH->initData.virtualAddr, noffH->initData.size);
-	//loadSegment(&noffH->initData, FALSE);	  
-	*/
 	return 0;
 }
 
@@ -304,6 +315,7 @@ AddrSpace::~AddrSpace()
 	delete []pageTableInit;
 	delete executable;
 	delete noffH;
+	delete store;
 }
 
 //----------------------------------------------------------------------

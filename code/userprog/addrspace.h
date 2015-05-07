@@ -17,6 +17,8 @@
 #include "filesys.h"
 #include "memory_manager.h"
 #include "noff.h"
+#include "translate.h"
+#include "backingstore.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
 
@@ -63,6 +65,9 @@ private:
 	// virtual memory related
 	OpenFile *executable;
 	NoffHeader *noffH;
+
+	// backing store on disk for page
+	BackingStore *store;
 
     TranslationEntry *pageTable;	
 	int *pageTableInit;
