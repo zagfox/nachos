@@ -33,8 +33,8 @@ main()
                 A[i] = tmp;
             }
         }
-		Write(msg, 4, ConsoleOutput);
     }
+	Write(msg, 4, ConsoleOutput);
 
     Exit(A[0]);		/* and then we're done -- should be 0! */
 }

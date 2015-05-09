@@ -51,7 +51,7 @@ void MemoryManager::FreePage(int physPageNum) {
 		mem_map->Clear(physPageNum);
 		free_page_num++;
 		pv_map[physPageNum] = -1;
-		//should free fifo_list
+		//should free fifo_list, now it is done in GetEvictPhysPage
 		pspace_map[physPageNum] = 0;
 	}
 	mem_lock->Release();

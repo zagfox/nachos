@@ -27,6 +27,7 @@
 #include "sys_utility.h"
 #include "sys_io_handler.h"
 #include "sys_thread_handler.h"
+#include "sys_pf_handler.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -50,22 +51,6 @@
 //	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
-
-void handlePageFault(int pageId) {
-	// if full, evict a page
-	if (memoryMgr->GetFreePageNum() == 0) {
-		int evictPhysPageId = memoryMgr->GetEvictPhysPage();
-		int evictVirtPageId = memoryMgr->GetVirtPageId(evictPhysPageId);
-		AddrSpace *evictPageSpace = memoryMgr->GetPageSpace(evictPhysPageId);
-
-		memoryMgr->FreePage(evictPhysPageId);   //free the physical page
-		evictPageSpace->PageOut(evictVirtPageId);
-	}	
-	
-	// then alloc physical page
-	int physPageId = memoryMgr->AllocPage(pageId, currentThread->space);
-	currentThread->space->PageIn(pageId, physPageId);
-}
 
 void
 ExceptionHandler(ExceptionType which)

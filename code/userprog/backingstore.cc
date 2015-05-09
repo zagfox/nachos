@@ -38,9 +38,6 @@ void BackingStore::PageOut(TranslationEntry *pte) {
 	int physAddr = pte->physicalPage * PageSize;
 	int byte_write = file->WriteAt(&machine->mainMemory[physAddr], PageSize, virtAddr);
 	ASSERT(byte_write != 0);
-
-	//printf("byte write %d\n", byte_write);
-	//printf("file length %d\n", file->Length());
 }
 
 void BackingStore::PageIn(TranslationEntry *pte) {
@@ -49,8 +46,5 @@ void BackingStore::PageIn(TranslationEntry *pte) {
 	int physAddr = pte->physicalPage * PageSize;
 	int byte_read = file->ReadAt(&machine->mainMemory[physAddr], PageSize, virtAddr);
 	ASSERT(byte_read != 0);
-
-	//printf("byte read %d\n", byte_read);
-	//printf("file length %d\n", file->Length());
 }
 
