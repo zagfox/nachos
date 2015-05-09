@@ -4,6 +4,8 @@
 #include "system.h"
 
 void handlePageFault(int pageId) {
+	stats->numPageFaults++;
+
 	// if full, evict a page
 	if (memoryMgr->GetFreePageNum() == 0) {
 		int evictPhysPageId = memoryMgr->GetEvictPhysPage();

@@ -100,6 +100,7 @@ void AddrSpace::PageOut(int virtPageId) {
 	// if it is dirty, or just init from executable, save to back store
 	if (pageTable[virtPageId].dirty == TRUE || pageTableInit[virtPageId] == 1) { 
 		store->PageOut(&pageTable[virtPageId]);
+		stats->numPageOuts++;
 	}
 	pageTable[virtPageId].valid = FALSE;
 	pageTable[virtPageId].use = FALSE;
@@ -135,6 +136,8 @@ void AddrSpace::PageIn(int pageId, int physPageId) {
 
 	// mark in pageTable
 	pageTable[pageId].valid = TRUE;
+	// updaet stats
+	stats->numPageIns++;
 }
 
 int AddrSpace::Initialize(OpenFile *_executable, int argc) {
