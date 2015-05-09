@@ -15,11 +15,14 @@ int
 main()
 {
     int i, j, tmp;
+	char msg[4] = "msg\0";
 
     /* first initialize the array, in reverse sorted order */
+	Write(msg, 4, ConsoleOutput);
     for (i = 0; i < 1024; i++) {
         A[i] = 1023 - i;
     }
+	Write(msg, 4, ConsoleOutput);
 
     /* then sort! */
     for (i = 0; i < 1024; i++) {
@@ -30,6 +33,7 @@ main()
                 A[i] = tmp;
             }
         }
+		Write(msg, 4, ConsoleOutput);
     }
 
     Exit(A[0]);		/* and then we're done -- should be 0! */

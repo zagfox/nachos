@@ -45,14 +45,14 @@ public:
 	int DecNumThread() { return (--numThreads); }
 
 	// change pageTable
-	void PageIn(int pageId);
+	void PageIn(int pageId, int physPageId);
+	void PageOut(int virtPageId);
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
 
 private:
-	// Load segment to space
-	void loadSegment(Segment *seg, bool readonly);
+	// Load segment to page
 	void loadSegmentToPage(Segment *seg, bool readonly, int pageId);
 
 	// copy the arg from virtual address from parent thread

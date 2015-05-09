@@ -52,7 +52,19 @@
 //----------------------------------------------------------------------
 
 void handlePageFault(int pageId) {
-	currentThread->space->PageIn(pageId);
+	// if full, evict a page
+	if (memoryMgr->GetFreePageNum() == 0) {
+		int evictPhysPageId = memoryMgr->GetEvictPhysPage();
+		int evictVirtPageId = memoryMgr->GetVirtPageId(evictPhysPageId);
+		AddrSpace *evictPageSpace = memoryMgr->GetPageSpace(evictPhysPageId);
+
+		memoryMgr->FreePage(evictPhysPageId);   //free the physical page
+		evictPageSpace->PageOut(evictVirtPageId);
+	}	
+	
+	// then alloc physical page
+	int physPageId = memoryMgr->AllocPage(pageId, currentThread->space);
+	currentThread->space->PageIn(pageId, physPageId);
 }
 
 void
@@ -123,7 +135,7 @@ ExceptionHandler(ExceptionType which)
 		handleExit(-1);
 	} else if (which == PageFaultException) {
 		int vAddr = machine->ReadRegister(BadVAddrReg);
-		printf("page fault, vAddr %d\n", vAddr);
+		//printf("page fault, vAddr %d\n", vAddr);
 		handlePageFault(vAddr / PageSize);
 	} else {
         printf("Unexpected user mode exception %d %d\n", which, type);

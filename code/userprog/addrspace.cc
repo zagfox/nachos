@@ -67,29 +67,6 @@ AddrSpace::AddrSpace()
 	numThreads = 0;
 }
 
-void AddrSpace::loadSegment(Segment *seg, bool readonly) {
-	int filePos, fileAddr;
-	int virtPageId, physAddr, pageOffset;
-	int readSize;
-
-	for (filePos = 0; filePos < seg->size;) {
-		virtPageId = (seg->virtualAddr + filePos) / PageSize;
-		pageOffset = (seg->virtualAddr + filePos) % PageSize;
-		physAddr = pageTable[virtPageId].physicalPage * PageSize + pageOffset;
-		fileAddr = seg->inFileAddr + filePos;
-
-		readSize = min(PageSize, seg->size - filePos);  // handle end of file
-		readSize = min(readSize, PageSize - pageOffset); // handle start of file
-		ASSERT(readSize > 0);
-
-		if (readSize == PageSize && readonly) {
-			pageTable[virtPageId].readOnly = TRUE;
-		}
-		executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
-		filePos += readSize;
-	}
-}
-
 void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 	int segStart = seg->virtualAddr;
 	int segEnd = seg->virtualAddr + seg->size;
@@ -117,42 +94,41 @@ void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 	executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
 }
 
-void AddrSpace::PageIn(int pageId) {
-	// if full, evict a page
-	if (memoryMgr->GetFreePageNum() == 0) {
-		int evictPageId = 10; // virtual page to be evicted, now always evict page number smallest
-		while (evictPageId < numPages && pageTable[evictPageId].valid == FALSE) {
-			evictPageId++;
-			//evictPageId = rand() % numPages;
-		}
-		printf("page out vid %d\n", evictPageId);
+void AddrSpace::PageOut(int virtPageId) {
+	printf("page out vid %d\n", virtPageId);
 
-		if (pageTable[evictPageId].dirty == TRUE) {
-			store->PageOut(&pageTable[evictPageId]);
-		}
-		memoryMgr->FreePage(pageTable[evictPageId].physicalPage);   //free the physical page
-		pageTable[evictPageId].valid = FALSE;
-		pageTable[evictPageId].use = FALSE;
-		pageTable[evictPageId].dirty = FALSE;
-		pageTable[evictPageId].physicalPage = -1;
+	// if it is dirty, or just init from executable, save to back store
+	if (pageTable[virtPageId].dirty == TRUE || pageTableInit[virtPageId] == 1) { 
+		store->PageOut(&pageTable[virtPageId]);
 	}
-	// then alloc physical page
-	pageTable[pageId].physicalPage = memoryMgr->AllocPage();
+	pageTable[virtPageId].valid = FALSE;
+	pageTable[virtPageId].use = FALSE;
+	pageTable[virtPageId].dirty = FALSE;
+	pageTable[virtPageId].physicalPage = -1;
+}
 
-	if (pageTableInit[pageId] == 0) {
+void AddrSpace::PageIn(int pageId, int physPageId) {
+	// first, set page Table
+	pageTable[pageId].physicalPage = physPageId;
+
+	// then, load data
+	if (pageTableInit[pageId] == 0) {  // not init
 		printf("page in first time id %d\n", pageId);
 		// zero the page
 		char *ptr = &(machine->mainMemory[pageTable[pageId].physicalPage * PageSize]);
 		bzero((void*)ptr, PageSize);
 
-		// Load data
+		// Load from executable
 		loadSegmentToPage(&noffH->code, TRUE, pageId);
 		loadSegmentToPage(&noffH->initData, FALSE, pageId);
 
-		// mark page as initialized
+		// mark page as just initialized, but not saved to backstore
 		pageTableInit[pageId] = 1;
 	} else {
-		// then load from file
+		if (pageTableInit[pageId] == 1) {
+			pageTableInit[pageId] = 2; // initialized, also saved to backstore
+		}
+		// load from back store
 		printf("page in from file id %d\n", pageId);
 		store->PageIn(&pageTable[pageId]);
 	}
@@ -186,15 +162,6 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 	args_ptr_pos_base = size - args_size;
 	args_pos_base = args_ptr_pos_base + 4 * argc;
 
-    //ASSERT(numPages <= NumPhysPages);		// check we're not trying
-    // to run anything too big --
-    // at least until we have
-    // virtual memory
-	/*if ((int)numPages > memoryMgr->GetFreePageNum()) {
-		printf("addrspace init, memory shortage\n");
-		return -1;
-	}*/
-
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", numPages, size);
     DEBUG('a', "code size %d, initData size %d, uninitData size %d\n", 
 		noffH->code.size, noffH->initData.size, noffH->uninitData.size);
@@ -203,9 +170,7 @@ int AddrSpace::Initialize(OpenFile *_executable, int argc) {
 	pageTableInit = new int[numPages];
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;	
-        //pageTable[i].physicalPage = memoryMgr->AllocPage();
         pageTable[i].physicalPage = -1;
-        //pageTable[i].valid = TRUE;
         pageTable[i].valid = FALSE;
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
