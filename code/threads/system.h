@@ -40,6 +40,7 @@ extern MemoryManager *memoryMgr;  // Todo, make it static in addrSpace
 extern Table* spaceIdTable;
 extern SynchConsole* synchConsole;
 extern BoundedBuffer* pipeBuffer;
+extern Lock* pg_lock;
 #endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 

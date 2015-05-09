@@ -35,12 +35,16 @@ public:
 	// Get the page Space according to phys page Id
 	AddrSpace *GetPageSpace(int physPageId);
 
+	// set
+	void setUseTick(int physPageId, int totalTick);
+
 private:
 	int mem_page_size;
 	int free_page_num;
 	BitMap *mem_map;
 	int *pv_map;  // a mapping from physical page to virtual page id
 	List *fifo_list;  // a fifo list that record the usage of physical page
+	int *lru_list;   // list that follow lru policy
 	int *pspace_map; // mapping from physical page to addrspace
 	Lock *mem_lock;
 };

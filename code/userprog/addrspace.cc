@@ -67,7 +67,7 @@ AddrSpace::AddrSpace()
 	numThreads = 0;
 }
 
-void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
+int AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 	int segStart = seg->virtualAddr;
 	int segEnd = seg->virtualAddr + seg->size;
 	int pageStart = pageId * PageSize;
@@ -77,7 +77,7 @@ void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 	int physAddr, fileAddr;
 
 	if (segStart >= pageEnd || segEnd < pageStart) 
-		return;
+		return 0;
 
 	readStart = max(segStart, pageStart);
 	readEnd = min(segEnd, pageEnd);
@@ -92,10 +92,12 @@ void AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 	}
 
 	executable->ReadAt(&(machine->mainMemory[physAddr]), readSize, fileAddr);
+
+	return readSize;
 }
 
 void AddrSpace::PageOut(int virtPageId) {
-	printf("page out vid %d\n", virtPageId);
+	DEBUG('p', "page out vid %d\n", virtPageId);
 
 	// if it is dirty, or just init from executable, save to back store
 	if (pageTable[virtPageId].dirty == TRUE || pageTableInit[virtPageId] == 1) { 
@@ -120,8 +122,11 @@ void AddrSpace::PageIn(int pageId, int physPageId) {
 		bzero((void*)ptr, PageSize);
 
 		// Load from executable
-		loadSegmentToPage(&noffH->code, TRUE, pageId);
-		loadSegmentToPage(&noffH->initData, FALSE, pageId);
+		int readCodeSize = loadSegmentToPage(&noffH->code, TRUE, pageId);
+		int readDataSize = loadSegmentToPage(&noffH->initData, FALSE, pageId);
+		if (readCodeSize != 0 || readDataSize != 0) {
+			stats->numPageIns++;
+		}
 
 		// mark page as just initialized, but not saved to backstore
 		pageTableInit[pageId] = 1;
@@ -132,12 +137,11 @@ void AddrSpace::PageIn(int pageId, int physPageId) {
 		// load from back store
 		DEBUG('p', "page in from file id %d\n", pageId);
 		store->PageIn(&pageTable[pageId]);
+		stats->numPageIns++;
 	}
 
 	// mark in pageTable
 	pageTable[pageId].valid = TRUE;
-	// updaet stats
-	stats->numPageIns++;
 }
 
 int AddrSpace::Initialize(OpenFile *_executable, int argc) {

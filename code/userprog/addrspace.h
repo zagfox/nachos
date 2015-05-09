@@ -53,7 +53,7 @@ public:
 
 private:
 	// Load segment to page
-	void loadSegmentToPage(Segment *seg, bool readonly, int pageId);
+	int loadSegmentToPage(Segment *seg, bool readonly, int pageId);
 
 	// copy the arg from virtual address from parent thread
 	// then write to the end of space

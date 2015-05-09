@@ -21,6 +21,7 @@ MemoryManager *memoryMgr = NULL;
 Table *spaceIdTable = NULL;
 SynchConsole *synchConsole = NULL;
 BoundedBuffer *pipeBuffer = NULL;
+Lock *pg_lock = NULL;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -36,6 +37,7 @@ StartProcess(char *filename)
 	spaceIdTable = new Table(256);   // a temp number
 	synchConsole = new SynchConsole();
 	pipeBuffer = new BoundedBuffer(256);
+	pg_lock = new Lock("pg_lock");
 
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;

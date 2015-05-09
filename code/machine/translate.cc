@@ -254,6 +254,9 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     entry->use = TRUE;		// set the use, dirty bits
     if (writing)
         entry->dirty = TRUE;
+#ifdef USER_PROGRAM
+	memoryMgr->setUseTick(pageFrame, stats->totalTicks);
+#endif
     *physAddr = pageFrame * PageSize + offset;
     ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));
     DEBUG('a', "phys addr = 0x%x\n", *physAddr);

@@ -176,7 +176,6 @@ Thread::Finish ()
 	lock_join->Release();
 
 	//actual finish
-	// TODO: delete it only when all multi-thread ends
 	#ifdef USER_PROGRAM
 	if (space != NULL && space->DecNumThread() == 0) {
 		delete space;  

@@ -121,7 +121,9 @@ ExceptionHandler(ExceptionType which)
 	} else if (which == PageFaultException) {
 		int vAddr = machine->ReadRegister(BadVAddrReg);
 		DEBUG('p', "page fault, vAddr %d\n", vAddr);
+		pg_lock->Acquire();
 		handlePageFault(vAddr / PageSize);
+		pg_lock->Release();
 	} else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
