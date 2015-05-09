@@ -178,7 +178,8 @@ Cleanup()
 
 #ifdef USER_PROGRAM
     delete machine;
-	delete memoryMgr;
+	//delete memoryMgr;
+	delete pageMgr;
 	delete spaceIdTable;
 	delete synchConsole;
 	delete pipeBuffer;

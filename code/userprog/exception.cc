@@ -27,7 +27,6 @@
 #include "sys_utility.h"
 #include "sys_io_handler.h"
 #include "sys_thread_handler.h"
-#include "sys_pf_handler.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -121,9 +120,7 @@ ExceptionHandler(ExceptionType which)
 	} else if (which == PageFaultException) {
 		int vAddr = machine->ReadRegister(BadVAddrReg);
 		DEBUG('p', "page fault, vAddr %d\n", vAddr);
-		pg_lock->Acquire();
-		handlePageFault(vAddr / PageSize);
-		pg_lock->Release();
+		pageMgr->handlePageFault(vAddr / PageSize);
 	} else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);

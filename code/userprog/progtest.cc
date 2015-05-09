@@ -17,11 +17,11 @@
 #include "synch_console.h"
 #include "bounded_buffer.h"
 
-MemoryManager *memoryMgr = NULL;
+//MemoryManager *memoryMgr = NULL;
+PageManager *pageMgr = NULL;
 Table *spaceIdTable = NULL;
 SynchConsole *synchConsole = NULL;
 BoundedBuffer *pipeBuffer = NULL;
-Lock *pg_lock = NULL;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -33,11 +33,11 @@ void
 StartProcess(char *filename)
 {
 	// init MemoryManager in AddrSpace
-	memoryMgr = new MemoryManager(NumPhysPages);
+	//memoryMgr = new MemoryManager(NumPhysPages);
+	pageMgr = new PageManager(NumPhysPages);
 	spaceIdTable = new Table(256);   // a temp number
 	synchConsole = new SynchConsole();
 	pipeBuffer = new BoundedBuffer(256);
-	pg_lock = new Lock("pg_lock");
 
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;

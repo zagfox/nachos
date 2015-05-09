@@ -145,8 +145,6 @@ void AddrSpace::PageIn(int pageId, int physPageId) {
 }
 
 int AddrSpace::Initialize(OpenFile *_executable, int argc) {
-	ASSERT(memoryMgr != NULL);
-
 	executable = _executable;
     noffH = new NoffHeader;
     unsigned int i, size;
@@ -275,15 +273,16 @@ bool AddrSpace::writeMem(int va, int size, int value) {
 //----------------------------------------------------------------------
 AddrSpace::~AddrSpace()
 {
-	// free the memory in memoryMgr
+	// free the memory
 	unsigned int i;
 	int pageId;
 	for (i = 0; i < numPages; i++) {
 		pageId = pageTable[i].physicalPage;
-		memoryMgr->FreePage(pageId);
+		//memoryMgr->FreePage(pageId);
+		pageMgr->FreePage(pageId);
 	}
 
-    delete [] pageTable;
+    delete []pageTable;
 	delete []pageTableInit;
 	delete executable;
 	delete noffH;
