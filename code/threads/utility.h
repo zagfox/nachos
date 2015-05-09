@@ -15,6 +15,7 @@
 //   	'f' -- file system (FILESYS)
 //   	'a' -- address spaces (USER_PROGRAM)
 //   	'n' -- network emulation (NETWORK)
+//      'p' -- memory page in, out (USER_PROGRAM)
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation

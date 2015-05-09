@@ -114,7 +114,7 @@ void AddrSpace::PageIn(int pageId, int physPageId) {
 
 	// then, load data
 	if (pageTableInit[pageId] == 0) {  // not init
-		printf("page in first time id %d\n", pageId);
+		DEBUG('p', "page in first time id %d\n", pageId);
 		// zero the page
 		char *ptr = &(machine->mainMemory[pageTable[pageId].physicalPage * PageSize]);
 		bzero((void*)ptr, PageSize);
@@ -130,7 +130,7 @@ void AddrSpace::PageIn(int pageId, int physPageId) {
 			pageTableInit[pageId] = 2; // initialized, also saved to backstore
 		}
 		// load from back store
-		printf("page in from file id %d\n", pageId);
+		DEBUG('p', "page in from file id %d\n", pageId);
 		store->PageIn(&pageTable[pageId]);
 	}
 

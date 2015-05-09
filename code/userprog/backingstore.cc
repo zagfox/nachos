@@ -26,9 +26,6 @@ int BackingStore::Initialize(AddrSpace *as, int size) {
 		return -1;
 	}
 
-	int length = file->Length();
-	printf("file length %d\n", length);
-
 	return 0;
 }
 

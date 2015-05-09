@@ -120,7 +120,7 @@ ExceptionHandler(ExceptionType which)
 		handleExit(-1);
 	} else if (which == PageFaultException) {
 		int vAddr = machine->ReadRegister(BadVAddrReg);
-		//printf("page fault, vAddr %d\n", vAddr);
+		DEBUG('p', "page fault, vAddr %d\n", vAddr);
 		handlePageFault(vAddr / PageSize);
 	} else {
         printf("Unexpected user mode exception %d %d\n", which, type);
