@@ -31,13 +31,11 @@ extern Timer *timer;				// the hardware alarm clock
 
 #ifdef USER_PROGRAM
 #include "machine.h"
-//#include "memory_manager.h"
 #include "page_manager.h"
 #include "table.h"
 #include "synch_console.h"
 #include "bounded_buffer.h"
 extern Machine* machine;	// user program memory and registers
-//extern MemoryManager *memoryMgr;  // Todo, make it static in addrSpace
 extern PageManager *pageMgr;  
 extern Table* spaceIdTable;
 extern SynchConsole* synchConsole;

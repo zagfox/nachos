@@ -1,56 +1,37 @@
 #ifndef PAGE_MANAGER_H
 #define PAGE_MANAGER_H
 
-#include "memory_manager.h"
-#include "system.h"
 #include "synch.h"
+#include "memory_manager.h"
+
+class PageMeta {
+public:
+	PageMeta() {
+		virtPageId = -1;
+		spacePtr = 0;
+	}
+	int virtPageId;
+	void* spacePtr;
+};
 
 // manage page, handle page fault
 class PageManager {
 public:
-	PageManager(int numPages) {
-		memoryMgr = new MemoryManager(numPages);
-		pfLock = new Lock("pagefault_Lock");
-	}
-	~PageManager() {
-		delete memoryMgr;
-		delete pfLock;
-	}
+	PageManager(int numPages);
 
-	void handlePageFault(int pageId) {
-		pfLock->Acquire();
+	~PageManager();
 
-		stats->numPageFaults++;
+	void handlePageFault(int virtPageId);
 
-		// if full, evict a page
-		if (memoryMgr->GetFreePageNum() == 0) {
-			int evictPhysPageId = memoryMgr->GetEvictPhysPage();
-			int evictVirtPageId = memoryMgr->GetVirtPageId(evictPhysPageId);
-			AddrSpace *evictPageSpace = memoryMgr->GetPageSpace(evictPhysPageId);
+	void FreePage(int physPageId);
 
-			memoryMgr->FreePage(evictPhysPageId);   //free the physical page
-			evictPageSpace->PageOut(evictVirtPageId);
-		}
-		
-		// then alloc physical page
-		int physPageId = memoryMgr->AllocPage(pageId, currentThread->space);
-		currentThread->space->PageIn(pageId, physPageId);
-
-		pfLock->Release();
-
-	}
-
-	void FreePage(int physPageId) {
-		memoryMgr->FreePage(physPageId);
-	}
-
-	void setUseTick(int physPageId, int totalTick) {
-		memoryMgr->setUseTick(physPageId, totalTick);
-	}
+	void setUseTick(int physPageId, int totalTick);
 
 private:
+	int physPageNum;
 	MemoryManager *memoryMgr;
 	Lock *pfLock;
+	PageMeta *pageMetaArray;
 };
 
 #endif // PAGE_MANAGER_H
