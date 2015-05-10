@@ -24,18 +24,10 @@ public:
 	/* True if the physical page is allocated, false otherwise. */
 	bool PageIsAllocated(int physPageNum);
 
-	// in page swap, get the physical page that should evicted
-	int GetEvictPhysPage();
-
-	// set
-	void setUseTick(int physPageId, int totalTick);
-
 private:
 	int mem_page_size;
 	int free_page_num;
 	BitMap *mem_map;
-	List *fifo_list;  // a fifo list that record the usage of physical page
-	int *lru_list;   // list that follow lru policy
 	Lock *mem_lock;
 };
 

@@ -255,7 +255,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     if (writing)
         entry->dirty = TRUE;
 #ifdef USER_PROGRAM
-	pageMgr->setUseTick(pageFrame, stats->totalTicks);
+	pageMgr->setUseTick(pageFrame);
 #endif
     *physAddr = pageFrame * PageSize + offset;
     ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));

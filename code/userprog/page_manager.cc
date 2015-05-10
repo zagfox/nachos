@@ -1,5 +1,6 @@
 #include "page_manager.h"
 
+#include <limits.h>
 #include "system.h"
 
 PageManager::PageManager(int numPages) {
@@ -22,7 +23,9 @@ void PageManager::handlePageFault(int virtPageId) {
 
 	// if full, evict a page
 	if (memoryMgr->GetFreePageNum() == 0) {
-		int evictPhysPageId = memoryMgr->GetEvictPhysPage();
+		int evictPhysPageId = getEvictPhysPageLRU();
+		//int evictPhysPageId = getEvictPhysPageFIFO();
+
 		PageMeta *evictPageMeta = &pageMetaArray[evictPhysPageId];
 
 		int evictVirtPageId = evictPageMeta->virtPageId;
@@ -34,8 +37,8 @@ void PageManager::handlePageFault(int virtPageId) {
 	
 	// then alloc physical page
 	int physPageId = memoryMgr->AllocPage();
-	pageMetaArray[physPageId].virtPageId = virtPageId;
-	pageMetaArray[physPageId].spacePtr = (void*)currentThread->space;
+	pageMetaArray[physPageId].SetMeta(virtPageId, 
+		stats->totalTicks, stats->totalTicks, (void*)currentThread->space);
 	currentThread->space->PageIn(virtPageId, physPageId);
 
 	pfLock->Release();
@@ -45,7 +48,36 @@ void PageManager::FreePage(int physPageId) {
 	memoryMgr->FreePage(physPageId);
 }
 
-void PageManager::setUseTick(int physPageId, int totalTick) {
-	memoryMgr->setUseTick(physPageId, totalTick);
+void PageManager::setUseTick(int physPageId) {
+	pageMetaArray[physPageId].usedTick = stats->totalTicks;;
 }
 
+int PageManager::getEvictPhysPageFIFO() {
+	int i, page = -1;
+	int tmp, min_tick = INT_MAX;
+	for (i = 0; i < physPageNum; i++) {
+		tmp = pageMetaArray[i].initTick;
+		if (tmp != 0 && tmp < min_tick) {
+			page = i;
+			min_tick = tmp;
+		}
+	}
+	ASSERT(page != -1);
+
+	return page;
+}
+
+int PageManager::getEvictPhysPageLRU() {
+	int i, page = -1;
+	int tmp, min_tick = INT_MAX;
+	for (i = 0; i < physPageNum; i++) {
+		tmp = pageMetaArray[i].usedTick;
+		if (tmp != 0 && tmp < min_tick) {
+			page = i;
+			min_tick = tmp;
+		}
+	}
+	ASSERT(page != -1);
+
+	return page;
+}

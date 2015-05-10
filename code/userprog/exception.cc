@@ -124,5 +124,5 @@ ExceptionHandler(ExceptionType which)
 	} else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
-    }
+	}
 }

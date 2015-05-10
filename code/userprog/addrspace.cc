@@ -98,6 +98,7 @@ int AddrSpace::loadSegmentToPage(Segment *seg, bool readonly, int pageId) {
 
 void AddrSpace::PageOut(int virtPageId) {
 	DEBUG('p', "page out vid %d\n", virtPageId);
+	ASSERT(pageTable[virtPageId].valid == TRUE);
 
 	// if it is dirty, or just init from executable, save to back store
 	if (pageTable[virtPageId].dirty == TRUE || pageTableInit[virtPageId] == 1) { 
